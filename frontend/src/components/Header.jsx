@@ -8,12 +8,8 @@ import {
   User,
   Menu,
   X,
-  ChevronDown,
-  Phone,
-  MapPin,
 } from 'lucide-react';
 import { useCartStore, useWishlistStore, useUIStore } from '../store';
-import MegaMenu from './MegaMenu';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -87,126 +83,107 @@ const Header = () => {
 
   return (
     <>
-      {/* Top Bar */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white py-2.5 hidden md:block border-b border-slate-700/50">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex justify-between items-center text-sm">
-            <div className="flex items-center gap-6">
-              <a href="tel:+919876543210" className="flex items-center gap-2 hover:text-amber-400 transition-colors duration-300">
-                <Phone size={14} />
-                <span>+91 98765 43210</span>
-              </a>
-              <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-amber-400 transition-colors duration-300">
-                <MapPin size={14} />
-                <span>Visit Our Store</span>
-              </a>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent font-semibold">✨ Free Shipping on Orders Above ₹999</span>
-              <span className="text-slate-500">|</span>
-              <span className="text-slate-300">Easy Returns Within 7 Days</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Header */}
+      {/* Main Header - Minimal & Sticky */}
       <motion.header
-        className={`sticky top-0 z-50 transition-all duration-300 backdrop-blur-md ${
+        className={`sticky top-0 z-50 transition-all duration-500 ${
           isScrolled
-            ? 'bg-white/95 shadow-xl border-b border-slate-200'
-            : 'bg-white shadow-lg'
+            ? 'bg-white/98 backdrop-blur-md shadow-sm border-b border-navy-100'
+            : 'bg-white'
         }`}
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
       >
-        <div className="max-w-7xl mx-auto px-6 py-5">
-          <div className="flex items-center justify-between gap-4">
-            {/* Logo */}
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <div className="flex items-center justify-between gap-8">
+            {/* Logo - Bagvo Brand */}
             <Link to="/" className="flex items-center gap-3 group">
               <motion.div
-                className="flex items-center gap-2"
-                whileHover={{ scale: 1.05 }}
-                transition={{ type: 'spring', stiffness: 300 }}
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: 'spring', stiffness: 400 }}
               >
-                <div className="w-10 h-10 bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 rounded-lg flex items-center justify-center shadow-lg">
-                  <span className="text-white text-2xl font-bold">B</span>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent tracking-tight">
-                    BagShop
-                  </div>
-                  <div className="text-[10px] text-slate-500 tracking-wider uppercase -mt-1">Premium Collection</div>
-                </div>
+                <h1 className="font-heading text-3xl md:text-4xl text-navy-950 tracking-tight">
+                  Bagvo
+                </h1>
               </motion.div>
             </Link>
 
-            {/* Search Bar - Desktop */}
-            <form
-              onSubmit={handleSearch}
-              className="hidden md:flex flex-1 max-w-2xl mx-8"
-            >
-              <div className="relative w-full">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search bags, purses, covers..."
-                  className="w-full px-6 py-3.5 pl-12 rounded-2xl border-2 border-slate-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20 focus:outline-none transition-all duration-300 bg-slate-50/50 hover:bg-white"
-                />
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                <button
-                  type="submit"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-2.5 rounded-xl hover:from-amber-600 hover:to-orange-600 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl"
+            {/* Navigation - Desktop */}
+            <nav className="hidden lg:flex items-center gap-1">
+              {categories.map((category) => (
+                <div
+                  key={category.slug}
+                  className="relative group"
+                  onMouseEnter={() => setShowMegaMenu(category.slug)}
+                  onMouseLeave={() => setShowMegaMenu(null)}
                 >
-                  Search
-                </button>
-              </div>
-            </form>
+                  <Link
+                    to={`/category/${category.slug}`}
+                    className="relative px-4 py-2 text-navy-700 hover:text-navy-950 font-medium transition-colors duration-300 group"
+                  >
+                    {category.name}
+                    {/* Animated underline */}
+                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gold-600 group-hover:w-full transition-all duration-300"></span>
+                  </Link>
+                </div>
+              ))}
+            </nav>
 
-            {/* Icons */}
-            <div className="flex items-center gap-2 md:gap-4">
-              {/* Mobile Search */}
-              <button className="md:hidden p-2 hover:bg-secondary-100 rounded-full transition">
-                <Search size={22} />
-              </button>
+            {/* Right Icons */}
+            <div className="flex items-center gap-3">
+              {/* Search */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="hidden md:block p-2.5 hover:bg-navy-50 rounded-full transition-colors duration-300"
+                onClick={() => {/* Add search modal handler */}}
+              >
+                <Search size={20} className="text-navy-700" />
+              </motion.button>
 
               {/* Account */}
-              <Link
-                to="/account"
-                className="hidden md:flex items-center gap-2 p-2.5 hover:bg-slate-100 rounded-xl transition-colors duration-300"
-              >
-                <User size={22} className="text-slate-700" />
+              <Link to="/account">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="hidden md:block p-2.5 hover:bg-navy-50 rounded-full transition-colors duration-300"
+                >
+                  <User size={20} className="text-navy-700" />
+                </motion.button>
               </Link>
 
               {/* Wishlist */}
-              <Link
-                to="/wishlist"
-                className="relative p-2.5 hover:bg-slate-100 rounded-xl transition-colors duration-300"
-              >
-                <Heart size={22} />
-                {wishlistItems.length > 0 && (
-                  <motion.span
-                    className="absolute -top-1 -right-1 bg-primary-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-semibold"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 500 }}
-                  >
-                    {wishlistItems.length}
-                  </motion.span>
-                )}
+              <Link to="/wishlist" className="relative">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="p-2.5 hover:bg-navy-50 rounded-full transition-colors duration-300"
+                >
+                  <Heart size={20} className="text-navy-700" />
+                  {wishlistItems.length > 0 && (
+                    <motion.span
+                      className="absolute -top-1 -right-1 bg-gold-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 500 }}
+                    >
+                      {wishlistItems.length}
+                    </motion.span>
+                  )}
+                </motion.button>
               </Link>
 
               {/* Cart */}
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={toggleCart}
-                className="relative p-2.5 hover:bg-slate-100 rounded-xl transition-colors duration-300"
+                className="relative p-2.5 hover:bg-navy-50 rounded-full transition-colors duration-300"
               >
-                <ShoppingCart size={22} className="text-slate-700" />
+                <ShoppingCart size={20} className="text-navy-700" />
                 {cartItemCount > 0 && (
                   <motion.span
-                    className="absolute -top-1 -right-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-lg"
+                    className="absolute -top-1 -right-1 bg-navy-950 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: 'spring', stiffness: 500 }}
@@ -214,63 +191,58 @@ const Header = () => {
                     {cartItemCount}
                   </motion.span>
                 )}
-              </button>
+              </motion.button>
 
-              {/* Mobile Menu Toggle */}
+              {/* Mobile Menu */}
               <button
                 onClick={toggleMobileMenu}
-                className="md:hidden p-2 hover:bg-secondary-100 rounded-full transition"
+                className="lg:hidden p-2.5 hover:bg-navy-50 rounded-full transition-colors duration-300"
               >
-                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
               </button>
             </div>
           </div>
         </div>
 
-        {/* Navigation - Desktop */}
-        <nav className="hidden md:block border-t border-secondary-200">
-          <div className="container-custom">
-            <ul className="flex items-center justify-center gap-8 py-3">
-              {categories.map((category) => (
-                <li
-                  key={category.slug}
-                  className="relative"
-                  onMouseEnter={() => setShowMegaMenu(category.slug)}
-                  onMouseLeave={() => setShowMegaMenu(null)}
-                >
-                  <Link
-                    to={`/category/${category.slug}`}
-                    className="flex items-center gap-1 font-semibold text-secondary-700 hover:text-primary-600 transition py-2"
-                  >
-                    {category.name}
-                    <ChevronDown size={16} />
-                  </Link>
-                  
-                  <AnimatePresence>
-                    {showMegaMenu === category.slug && (
-                      <MegaMenu category={category} />
-                    )}
-                  </AnimatePresence>
-                </li>
-              ))}
-              <li>
-                <Link
-                  to="/offers"
-                  className="font-semibold text-primary-600 hover:text-primary-700 transition"
-                >
-                  🔥 Offers
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </nav>
+        {/* Mega Menu - appears on hover */}
+        <AnimatePresence>
+          {showMegaMenu && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="absolute top-full left-0 right-0 bg-white border-t border-navy-100 shadow-lg"
+              onMouseEnter={() => setShowMegaMenu(showMegaMenu)}
+              onMouseLeave={() => setShowMegaMenu(null)}
+            >
+              <div className="max-w-7xl mx-auto px-6 py-8">
+                {categories.find(cat => cat.slug === showMegaMenu)?.subcategories && (
+                  <div className="grid grid-cols-4 gap-6">
+                    {categories.find(cat => cat.slug === showMegaMenu).subcategories.map((sub) => (
+                      <Link
+                        key={sub.slug}
+                        to={`/category/${showMegaMenu}/${sub.slug}`}
+                        className="group p-4 hover:bg-beige-100 rounded-lg transition-colors duration-300"
+                      >
+                        <h4 className="font-semibold text-navy-900 group-hover:text-gold-600 transition-colors">
+                          {sub.name}
+                        </h4>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.header>
 
       {/* Mobile Menu */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            className="fixed inset-0 z-40 md:hidden"
+            className="fixed inset-0 z-40 lg:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -285,7 +257,7 @@ const Header = () => {
             >
               <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-display font-bold">Menu</h2>
+                  <h2 className="text-xl font-heading font-bold">Menu</h2>
                   <button onClick={toggleMobileMenu} className="p-2">
                     <X size={24} />
                   </button>
@@ -293,10 +265,10 @@ const Header = () => {
 
                 <div className="space-y-4">
                   {categories.map((category) => (
-                    <div key={category.slug} className="border-b border-secondary-200 pb-4">
+                    <div key={category.slug} className="border-b border-navy-200 pb-4">
                       <Link
                         to={`/category/${category.slug}`}
-                        className="font-semibold text-secondary-900 block mb-2"
+                        className="font-semibold text-navy-900 block mb-2"
                         onClick={toggleMobileMenu}
                       >
                         {category.name}
@@ -306,7 +278,7 @@ const Header = () => {
                           <li key={sub.slug}>
                             <Link
                               to={`/category/${category.slug}/${sub.slug}`}
-                              className="text-secondary-600 hover:text-primary-600 transition"
+                              className="text-navy-600 hover:text-gold-600 transition"
                               onClick={toggleMobileMenu}
                             >
                               {sub.name}
@@ -316,14 +288,6 @@ const Header = () => {
                       </ul>
                     </div>
                   ))}
-                  
-                  <Link
-                    to="/offers"
-                    className="block font-semibold text-primary-600"
-                    onClick={toggleMobileMenu}
-                  >
-                    🔥 Special Offers
-                  </Link>
                 </div>
               </div>
             </motion.div>

@@ -14,8 +14,8 @@ const WhyChooseUs = () => {
     {
       id: 1,
       icon: Shield,
-      title: 'Premium Quality',
-      description: 'Handpicked products with strict quality control and premium materials',
+      title: '98% Positive Reviews',
+      description: 'Rated excellent by thousands of verified buyers',
       color: 'from-blue-600 to-cyan-500',
       bgColor: 'bg-blue-50',
       iconColor: 'text-blue-600',
@@ -23,8 +23,8 @@ const WhyChooseUs = () => {
     {
       id: 2,
       icon: CreditCard,
-      title: 'Best Prices',
-      description: 'Competitive pricing with amazing deals, discounts & cashback offers',
+      title: 'Safe & Secure Payments',
+      description: '100% encrypted transactions with COD & EMI options',
       color: 'from-green-600 to-emerald-500',
       bgColor: 'bg-green-50',
       iconColor: 'text-green-600',
@@ -32,8 +32,8 @@ const WhyChooseUs = () => {
     {
       id: 3,
       icon: Truck,
-      title: 'Fast Delivery',
-      description: 'Express shipping with live tracking to your doorstep across India',
+      title: 'PAN India Delivery',
+      description: '3-5 days delivery to 20,000+ pin codes',
       color: 'from-orange-600 to-amber-500',
       bgColor: 'bg-orange-50',
       iconColor: 'text-orange-600',
@@ -41,29 +41,29 @@ const WhyChooseUs = () => {
     {
       id: 4,
       icon: RefreshCw,
-      title: 'Easy Returns',
-      description: '7-day hassle-free returns with instant refund or exchange',
+      title: '7-Day Easy Returns',
+      description: 'No questions asked. Hassle-free refunds & exchanges',
       color: 'from-purple-600 to-pink-500',
       bgColor: 'bg-purple-50',
       iconColor: 'text-purple-600',
     },
     {
       id: 5,
-      icon: MapPin,
-      title: 'Pan-India Service',
-      description: 'Serving customers in every corner of India with same day dispatch',
-      color: 'from-red-600 to-rose-500',
-      bgColor: 'bg-red-50',
-      iconColor: 'text-red-600',
-    },
-    {
-      id: 6,
       icon: Award,
-      title: 'Trusted Brand',
-      description: '50,000+ happy customers trust us for authentic products',
+      title: '5,000+ Orders Delivered',
+      description: 'Trusted by brides, travelers & working professionals',
       color: 'from-amber-600 to-yellow-500',
       bgColor: 'bg-amber-50',
       iconColor: 'text-amber-600',
+    },
+    {
+      id: 6,
+      icon: Sparkles,
+      title: 'Premium Quality',
+      description: 'Handpicked designs. Unmatched craftsmanship',
+      color: 'from-pink-600 to-rose-500',
+      bgColor: 'bg-pink-50',
+      iconColor: 'text-pink-600',
     },
   ];
 
@@ -82,21 +82,21 @@ const WhyChooseUs = () => {
             viewport={{ once: true }}
             className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-100 to-pink-100 rounded-full mb-4"
           >
-            <Sparkles className="text-purple-600" size={18} />
-            <span className="text-purple-900 font-semibold text-sm">Why Choose BagShop</span>
+            <Sparkles className="text-gold-600" size={18} />
+            <span className="text-navy-900 font-semibold text-sm">Why Choose Bagvo</span>
           </motion.div>
           
           <motion.h2
-            className="text-5xl md:text-6xl font-bold text-slate-900 mb-4"
+            className="font-heading text-4xl md:text-5xl text-navy-950 mb-4"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            Experience Excellence
+            Why 5,000+ Customers Trust Us
           </motion.h2>
           <motion.p
-            className="text-xl text-slate-600 max-w-2xl mx-auto"
+            className="text-lg text-navy-600 max-w-2xl mx-auto"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}

@@ -1,187 +1,187 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const HeroSlider = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  const slides = [
-    {
-      id: 1,
-      title: 'Premium Leather Collection',
-      subtitle: 'Handcrafted Excellence',
-      description: 'Discover our exclusive range of handcrafted leather bags made with the finest Italian leather',
-      cta: 'Explore Collection',
-      link: '/collection/leather',
-      gradient: 'from-slate-900 via-amber-900 to-orange-900',
-      image: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=1200',
-    },
-    {
-      id: 2,
-      title: 'Wedding Season Special',
-      subtitle: 'Elegant Bridal Bags',
-      description: 'Complete your bridal look with our stunning collection of wedding bags and clutches',
-      cta: 'Shop Wedding',
-      link: '/collection/wedding',
-      gradient: 'from-rose-900 via-pink-900 to-purple-900',
-      image: 'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=1200',
-    },
-    {
-      id: 3,
-      title: 'Travel in Style',
-      subtitle: 'Adventure Awaits',
-      description: 'Premium travel bags designed for the modern explorer. Durable, spacious, and stylish',
-      cta: 'View Travel Bags',
-      link: '/collection/travel',
-      gradient: 'from-blue-900 via-teal-900 to-emerald-900',
-      image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=1200',
-    },
-    {
-      id: 4,
-      title: 'Designer Ladies Bags',
-      subtitle: 'Timeless Fashion',
-      description: 'Elevate your everyday style with our curated collection of designer handbags',
-      cta: 'Shop Now',
-      link: '/collection/ladies',
-      gradient: 'from-purple-900 via-fuchsia-900 to-pink-900',
-      image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=1200',
-    },
-  ];
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 5000);
-
-    return () => clearInterval(timer);
-  }, [slides.length]);
-
-  const goToSlide = (index) => {
-    setCurrentSlide(index);
-  };
-
-  const goToPrevious = () => {
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
-  };
-
-  const goToNext = () => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length);
-  };
-
   return (
-    <div className="relative h-[600px] overflow-hidden bg-slate-900">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentSlide}
-          className="absolute inset-0"
-          initial={{ opacity: 0, scale: 1.1 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.7, ease: 'easeInOut' }}
-        >
-          {/* Background Image */}
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${slides[currentSlide].image})` }}
-          >
-            <div className={`absolute inset-0 bg-gradient-to-r ${slides[currentSlide].gradient} opacity-90`} />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-          </div>
-
-          {/* Content */}
-          <div className="relative h-full container-custom flex items-center">
-            <motion.div
-              className="max-w-2xl text-white"
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-            >
-              <motion.span
-                className="inline-block px-4 py-2 bg-amber-500/20 border border-amber-500/50 rounded-full text-amber-300 font-semibold text-sm backdrop-blur-sm mb-6"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                {slides[currentSlide].subtitle}
-              </motion.span>
-              
-              <motion.h1
-                className="text-5xl md:text-7xl font-display font-bold mb-6 leading-tight"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-              >
-                {slides[currentSlide].title}
-              </motion.h1>
-              
-              <motion.p
-                className="text-xl mb-10 max-w-lg text-slate-200 leading-relaxed"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-              >
-                {slides[currentSlide].description}
-              </motion.p>
-              
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-                className="flex gap-4"
-              >
-                <Link
-                  to={slides[currentSlide].link}
-                  className="group px-10 py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-bold text-lg hover:from-amber-600 hover:to-orange-600 transition-all duration-300 shadow-2xl hover:shadow-amber-500/50 hover:scale-105 flex items-center gap-2"
-                >
-                  {slides[currentSlide].cta}
-                  <ChevronRight className="group-hover:translate-x-1 transition-transform duration-300" size={20} />
-                </Link>
-                <Link
-                  to="/all-products"
-                  className="px-10 py-4 bg-white/10 backdrop-blur-md text-white rounded-xl font-bold text-lg border-2 border-white/30 hover:bg-white/20 hover:border-white/50 transition-all duration-300"
-                >
-                  View All
-                </Link>
-              </motion.div>
-            </motion.div>
-          </div>
-        </motion.div>
-      </AnimatePresence>
-
-      {/* Navigation Arrows */}
-      <button
-        onClick={goToPrevious}
-        className="absolute left-6 top-1/2 -translate-y-1/2 bg-white/10 backdrop-blur-md text-white p-3 rounded-full hover:bg-white/20 transition-all duration-300 border border-white/30 group z-10"
-        aria-label="Previous slide"
-      >
-        <ChevronLeft size={24} className="group-hover:-translate-x-1 transition-transform duration-300" />
-      </button>
-      
-      <button
-        onClick={goToNext}
-        className="absolute right-6 top-1/2 -translate-y-1/2 bg-white/10 backdrop-blur-md text-white p-3 rounded-full hover:bg-white/20 transition-all duration-300 border border-white/30 group z-10"
-        aria-label="Next slide"
-      >
-        <ChevronRight size={24} className="group-hover:translate-x-1 transition-transform duration-300" />
-      </button>
-
-      {/* Indicators */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 z-10">
-        {slides.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => goToSlide(index)}
-            className={`h-2 rounded-full transition-all duration-300 ${
-              index === currentSlide
-                ? 'w-12 bg-amber-500'
-                : 'w-2 bg-white/40 hover:bg-white/70'
-            }`}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
+    <section className="relative min-h-[85vh] bg-beige-200 overflow-hidden">
+      {/* Subtle background texture */}
+      <div className="absolute inset-0 opacity-40">
+        <div className="absolute top-20 right-0 w-[600px] h-[600px] bg-gold-200 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-navy-200 rounded-full blur-3xl"></div>
       </div>
-    </div>
+
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
+        <div className="grid lg:grid-cols-5 gap-12 items-center py-20 min-h-[85vh]">
+          {/* Left Side - Text Content (60%) */}
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            className="lg:col-span-3 space-y-8"
+          >
+            {/* Badge */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-gold-300 shadow-sm"
+            >
+              <Sparkles className="text-gold-600" size={16} />
+              <span className="text-sm font-semibold text-navy-900">New Season Collection</span>
+            </motion.div>
+
+            {/* Main Heading */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.8 }}
+            >
+              <h1 className="font-heading text-6xl md:text-7xl lg:text-8xl text-navy-950 leading-[1.05] mb-6">
+                Carry<br />
+                <span className="text-gold-600">Confidence.</span>
+              </h1>
+              <p className="text-2xl md:text-3xl text-navy-700 font-light mb-4">
+                Premium Bags for Every Journey.
+              </p>
+              <p className="text-base text-navy-500 flex items-center gap-2">
+                ✨ Trusted by 5,000+ happy customers across India
+              </p>
+            </motion.div>
+
+            {/* Description */}
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+              className="text-lg md:text-xl text-navy-600 max-w-xl leading-relaxed"
+            >
+              Premium bags designed for travel, weddings, and daily elegance. 
+              Crafted with attention to detail, made to last.
+            </motion.p>
+
+            {/* CTA Buttons */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7, duration: 0.8 }}
+              className="flex flex-col sm:flex-row gap-4 pt-4"
+            >
+              <Link to="/products">
+                <motion.button
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="group px-8 py-4 bg-navy-950 text-black rounded-full font-semibold text-lg flex items-center justify-center gap-2 shadow-lg hover:shadow-2xl transition-all duration-300"
+                >
+                  Shop Collection
+                  <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} />
+                </motion.button>
+              </Link>
+              
+              <Link to="/category/wedding-collection">
+                <motion.button
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="group px-8 py-4 bg-white text-navy-950 rounded-full font-semibold text-lg flex items-center justify-center gap-2 border-2 border-navy-950 hover:bg-navy-950 hover:text-gray-900 transition-all duration-300"
+                >
+                  Wedding Collection
+                  <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} />
+                </motion.button>
+              </Link>
+            </motion.div>
+
+            {/* Trust Badges - NEW */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.9, duration: 0.8 }}
+              className="grid grid-cols-3 gap-4 pt-8 max-w-xl"
+            >
+              <div className="flex flex-col items-center text-center p-4 bg-white/80 backdrop-blur-sm rounded-xl border border-navy-100">
+                <div className="w-10 h-10 rounded-full bg-gold-100 flex items-center justify-center mb-2">
+                  <span className="text-2xl">🚚</span>
+                </div>
+                <span className="text-sm font-semibold text-navy-900">Free Shipping</span>
+                <span className="text-xs text-navy-500">On orders ₹999+</span>
+              </div>
+              
+              <div className="flex flex-col items-center text-center p-4 bg-white/80 backdrop-blur-sm rounded-xl border border-navy-100">
+                <div className="w-10 h-10 rounded-full bg-gold-100 flex items-center justify-center mb-2">
+                  <span className="text-2xl">↩️</span>
+                </div>
+                <span className="text-sm font-semibold text-navy-900">Easy Returns</span>
+                <span className="text-xs text-navy-500">7-Day policy</span>
+              </div>
+              
+              <div className="flex flex-col items-center text-center p-4 bg-white/80 backdrop-blur-sm rounded-xl border border-navy-100">
+                <div className="w-10 h-10 rounded-full bg-gold-100 flex items-center justify-center mb-2">
+                  <span className="text-2xl">🔒</span>
+                </div>
+                <span className="text-sm font-semibold text-navy-900">Secure Payments</span>
+                <span className="text-xs text-navy-500">100% Protected</span>
+              </div>
+            </motion.div>
+          </motion.div>
+
+          {/* Right Side - Product Showcase (40%) */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: 'easeOut', delay: 0.4 }}
+            className="lg:col-span-2 relative h-[600px] hidden lg:block"
+          >
+            {/* Main Featured Bag */}
+            <motion.div
+              animate={{ y: [0, -15, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+              className="absolute top-0 right-0 w-80 h-80 rounded-3xl overflow-hidden shadow-2xl z-20 border-4 border-white"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&q=80"
+                alt="Premium Handbag"
+                className="w-full h-full object-cover"
+              />
+            </motion.div>
+
+            {/* Secondary Bag */}
+            <motion.div
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+              className="absolute bottom-20 right-20 w-64 h-64 rounded-3xl overflow-hidden shadow-xl z-10 border-4 border-white"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=500&q=80"
+                alt="Wedding Collection"
+                className="w-full h-full object-cover"
+              />
+            </motion.div>
+
+            {/* Tertiary Bag */}
+            <motion.div
+              animate={{ y: [0, -12, 0] }}
+              transition={{ duration: 3.8, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+              className="absolute bottom-0 left-0 w-56 h-56 rounded-3xl overflow-hidden shadow-lg border-4 border-white"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&q=80"
+                alt="Travel Bag"
+                className="w-full h-full object-cover"
+              />
+            </motion.div>
+
+            {/* Decorative element */}
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 border-2 border-gold-300 rounded-full opacity-20"
+            />
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Bottom wave decoration */}
+      <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent"></div>
+    </section>
   );
 };
 
