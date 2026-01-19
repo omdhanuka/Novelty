@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 const productSchema = new mongoose.Schema(
   {
+    // Basic Information
     name: {
       type: String,
       required: [true, 'Product name is required'],
@@ -12,31 +13,16 @@ const productSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-    sku: {
+    shortDescription: {
       type: String,
-      unique: true,
-      sparse: true,
+      maxlength: 200,
     },
     description: {
       type: String,
       required: [true, 'Product description is required'],
     },
-    careInstructions: {
-      type: String,
-    },
-    price: {
-      type: Number,
-      required: [true, 'Product price is required'],
-      min: 0,
-    },
-    discountPrice: {
-      type: Number,
-      min: 0,
-    },
-    originalPrice: {
-      type: Number,
-      min: 0,
-    },
+    
+    // Category
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Category',
@@ -45,14 +31,34 @@ const productSchema = new mongoose.Schema(
     subcategory: {
       type: String,
     },
-    images: [{
-      url: String,
-      publicId: String,
-      alt: String,
-    }],
-    mainImage: {
+    brand: {
       type: String,
-      required: true,
+    },
+    tags: [{
+      type: String,
+    }],
+
+    // Pricing & Stock
+    sku: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    price: {
+      mrp: {
+        type: Number,
+        required: true,
+        min: 0,
+      },
+      selling: {
+        type: Number,
+        required: true,
+        min: 0,
+      },
+      discount: {
+        type: Number,
+        default: 0,
+      },
     },
     stock: {
       type: Number,
@@ -60,34 +66,119 @@ const productSchema = new mongoose.Schema(
       min: 0,
       default: 0,
     },
-    brand: {
-      type: String,
+    lowStockThreshold: {
+      type: Number,
+      default: 10,
     },
-    colors: [{
+    stockStatus: {
       type: String,
+      enum: ['in_stock', 'out_of_stock', 'low_stock'],
+      default: 'in_stock',
+    },
+
+    // Images
+    images: [{
+      url: String,
+      publicId: String,
+      alt: String,
     }],
-    sizes: [{
-      type: String,
-    }],
-    material: {
+    mainImage: {
       type: String,
     },
-    weight: {
+    hoverImage: {
       type: String,
     },
-    dimensions: {
-      length: Number,
-      width: Number,
-      height: Number,
-      unit: {
+    videoUrl: {
+      type: String,
+    },
+
+    // Product Attributes
+    attributes: {
+      colors: [{
         type: String,
-        default: 'cm',
+      }],
+      material: {
+        type: String,
+      },
+      sizes: [{
+        type: String,
+      }],
+      occasion: [{
+        type: String,
+      }],
+      capacity: {
+        type: String,
+      },
+      closureType: {
+        type: String,
       },
     },
-    features: [{
+
+    // Shipping & Delivery
+    shipping: {
+      weight: {
+        type: Number, // in kg
+      },
+      dimensions: {
+        length: Number,
+        width: Number,
+        height: Number,
+        unit: {
+          type: String,
+          default: 'cm',
+        },
+      },
+      codAvailable: {
+        type: Boolean,
+        default: true,
+      },
+      deliveryDays: {
+        type: String,
+        default: '3-5 days',
+      },
+    },
+
+    // SEO
+    seo: {
+      metaTitle: {
+        type: String,
+      },
+      metaDescription: {
+        type: String,
+      },
+      keywords: [{
+        type: String,
+      }],
+    },
+
+    // Status & Visibility Flags
+    status: {
       type: String,
-    }],
-    tags: [{
+      enum: ['active', 'draft', 'out_of_stock'],
+      default: 'draft',
+    },
+    isFeatured: {
+      type: Boolean,
+      default: false,
+    },
+    isNewArrival: {
+      type: Boolean,
+      default: false,
+    },
+    isBestSeller: {
+      type: Boolean,
+      default: false,
+    },
+    showOnHomepage: {
+      type: Boolean,
+      default: false,
+    },
+
+    // Additional Fields
+    careInstructions: {
+      type: String,
+    },
+    features: [{
       type: String,
     }],
     rating: {
@@ -100,30 +191,9 @@ const productSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    isFeatured: {
-      type: Boolean,
-      default: false,
-    },
-    isBestSeller: {
-      type: Boolean,
-      default: false,
-    },
-    isNewArrival: {
-      type: Boolean,
-      default: false,
-    },
     sold: {
       type: Number,
       default: 0,
-    },
-    status: {
-      type: String,
-      enum: ['active', 'draft', 'out_of_stock'],
-      default: 'active',
-    },
-    lowStockThreshold: {
-      type: Number,
-      default: 10,
     },
   },
   {
@@ -131,8 +201,38 @@ const productSchema = new mongoose.Schema(
   }
 );
 
+// Auto-generate slug from name
+productSchema.pre('save', function (next) {
+  if (this.isModified('name') && !this.slug) {
+    this.slug = this.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  }
+  
+  // Auto-calculate discount percentage
+  if (this.price.mrp && this.price.selling) {
+    this.price.discount = Math.round(((this.price.mrp - this.price.selling) / this.price.mrp) * 100);
+  }
+  
+  // Auto-update stock status
+  if (this.stock === 0) {
+    this.stockStatus = 'out_of_stock';
+  } else if (this.stock <= this.lowStockThreshold) {
+    this.stockStatus = 'low_stock';
+  } else {
+    this.stockStatus = 'in_stock';
+  }
+  
+  next();
+});
+
 // Index for search
 productSchema.index({ name: 'text', description: 'text', tags: 'text' });
+productSchema.index({ slug: 1 });
+productSchema.index({ sku: 1 });
+productSchema.index({ category: 1 });
+productSchema.index({ status: 1 });
 
 const Product = mongoose.model('Product', productSchema);
 

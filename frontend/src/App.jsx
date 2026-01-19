@@ -10,6 +10,7 @@ import AdminLogin from './pages/admin/AdminLogin';
 import AdminLayout from './components/admin/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProducts from './pages/admin/AdminProducts';
+import AdminAddProduct from './pages/admin/AdminAddProduct';
 import AdminOrders from './pages/admin/AdminOrders';
 import AdminCategories from './pages/admin/AdminCategories';
 import AdminCoupons from './pages/admin/AdminCoupons';
@@ -40,6 +41,7 @@ function App() {
             >
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="products" element={<AdminProducts />} />
+              <Route path="products/add" element={<AdminAddProduct />} />
               <Route path="orders" element={<AdminOrders />} />
               <Route path="categories" element={<AdminCategories />} />
               <Route path="coupons" element={<AdminCoupons />} />
