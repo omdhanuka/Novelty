@@ -7,13 +7,30 @@ const productSchema = new mongoose.Schema(
       required: [true, 'Product name is required'],
       trim: true,
     },
+    slug: {
+      type: String,
+      lowercase: true,
+      trim: true,
+    },
+    sku: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
     description: {
       type: String,
       required: [true, 'Product description is required'],
     },
+    careInstructions: {
+      type: String,
+    },
     price: {
       type: Number,
       required: [true, 'Product price is required'],
+      min: 0,
+    },
+    discountPrice: {
+      type: Number,
       min: 0,
     },
     originalPrice: {
@@ -91,13 +108,22 @@ const productSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    isNew: {
+    isNewArrival: {
       type: Boolean,
       default: false,
     },
     sold: {
       type: Number,
       default: 0,
+    },
+    status: {
+      type: String,
+      enum: ['active', 'draft', 'out_of_stock'],
+      default: 'active',
+    },
+    lowStockThreshold: {
+      type: Number,
+      default: 10,
     },
   },
   {

@@ -37,6 +37,16 @@ const categorySchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    showOnHomepage: {
+      type: Boolean,
+      default: true,
+    },
+    seoTitle: {
+      type: String,
+    },
+    seoDescription: {
+      type: String,
+    },
   },
   {
     timestamps: true,

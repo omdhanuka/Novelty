@@ -91,8 +91,13 @@ const orderSchema = new mongoose.Schema(
     },
     orderStatus: {
       type: String,
-      enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Refunded'],
-      default: 'Pending',
+      enum: ['placed', 'confirmed', 'packed', 'shipped', 'delivered', 'cancelled', 'refunded'],
+      default: 'placed',
+    },
+    paymentStatus: {
+      type: String,
+      enum: ['pending', 'paid', 'failed', 'refunded'],
+      default: 'pending',
     },
     isPaid: {
       type: Boolean,
@@ -105,8 +110,34 @@ const orderSchema = new mongoose.Schema(
     },
     deliveredAt: Date,
     trackingNumber: String,
+    trackingId: String,
     courierName: String,
-    notes: String,
+    notes: [{
+      message: String,
+      createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+      createdAt: {
+        type: Date,
+        default: Date.now,
+      },
+    }],
+    couponApplied: {
+      code: String,
+      discount: Number,
+    },
+    statusHistory: [{
+      status: String,
+      updatedAt: {
+        type: Date,
+        default: Date.now,
+      },
+      updatedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    }],
   },
   {
     timestamps: true,
