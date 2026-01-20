@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
@@ -7,24 +7,35 @@ import {
   PencilIcon,
   TrashIcon,
   MagnifyingGlassIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 
 const AdminProducts = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [status, setStatus] = useState('');
   const [stockFilter, setStockFilter] = useState('');
   const queryClient = useQueryClient();
 
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1); // Reset to first page on search
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-products', page, search, status, stockFilter],
+    queryKey: ['admin-products', page, debouncedSearch, status, stockFilter],
     queryFn: async () => {
       const token = localStorage.getItem('adminToken');
       const params = new URLSearchParams({
         page,
         limit: 20,
-        ...(search && { search }),
+        ...(debouncedSearch && { search: debouncedSearch }),
         ...(status && { status }),
         ...(stockFilter && { stockFilter }),
       });
@@ -96,8 +107,16 @@ const AdminProducts = () => {
               placeholder="Search products..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500"
+              className="pl-10 pr-10 w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500"
             />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            )}
           </div>
           
           <select
@@ -121,16 +140,18 @@ const AdminProducts = () => {
             <option value="out">Out of Stock</option>
           </select>
 
-          <button
-            onClick={() => {
-              setSearch('');
-              setStatus('');
-              setStockFilter('');
-            }}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-          >
-            Clear Filters
-          </button>
+          {(search || status || stockFilter) && (
+            <button
+              onClick={() => {
+                setSearch('');
+                setStatus('');
+                setStockFilter('');
+              }}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            >
+              Clear Filters
+            </button>
+          )}
         </div>
       </div>
 
@@ -171,9 +192,12 @@ const AdminProducts = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <img
-                          src={product.mainImage || '/placeholder.jpg'}
+                          src={product.mainImage || product.images?.[0]?.url || 'https://via.placeholder.com/40'}
                           alt={product.name}
-                          className="h-10 w-10 rounded object-cover"
+                          className="h-10 w-10 rounded object-cover bg-gray-100"
+                          onError={(e) => {
+                            e.target.src = 'https://via.placeholder.com/40?text=No+Image';
+                          }}
                         />
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
@@ -188,12 +212,14 @@ const AdminProducts = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {product.sku || 'N/A'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      ₹{product.price.toLocaleString()}
-                      {product.discountPrice && (
-                        <span className="ml-2 text-xs text-red-600">
-                          (₹{product.discountPrice})
-                        </span>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        ₹{product.price?.selling?.toLocaleString() || '0'}
+                      </div>
+                      {product.price?.mrp && product.price.mrp > product.price.selling && (
+                        <div className="text-xs text-gray-500 line-through">
+                          ₹{product.price.mrp.toLocaleString()}
+                        </div>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

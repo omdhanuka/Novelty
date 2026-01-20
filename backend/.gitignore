@@ -30,3 +30,6 @@ logs/
 # Temp
 .temp/
 .cache/
+
+# Uploads
+uploads/

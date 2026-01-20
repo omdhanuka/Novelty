@@ -25,14 +25,30 @@ const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
   fileFilter: (req, file, cb) => {
-    const filetypes = /jpeg|jpg|png|webp/;
-    const mimetype = filetypes.test(file.mimetype);
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    // Only validate if it's actually a file upload field
+    const imageFields = ['mainImage', 'images', 'hoverImage'];
+    
+    // Skip validation for non-image fields or if no file provided
+    if (!imageFields.includes(file.fieldname) || !file.originalname || file.size === 0) {
+      return cb(null, false); // Skip this file
+    }
+    
+    const filetypes = /jpeg|jpg|png|webp|gif/;
+    const mimetype = file.mimetype && filetypes.test(file.mimetype);
+    const extname = file.originalname && filetypes.test(path.extname(file.originalname).toLowerCase());
     
     if (mimetype && extname) {
       return cb(null, true);
     }
-    cb(new Error('Only image files are allowed'));
+    
+    // Log the issue for debugging
+    console.log('❌ Invalid file:', {
+      fieldname: file.fieldname,
+      mimetype: file.mimetype,
+      originalname: file.originalname
+    });
+    
+    cb(null, false); // Skip invalid files instead of throwing error
   },
 });
 
@@ -134,12 +150,144 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create product
-router.post('/', auditLog('create', 'Product'), async (req, res) => {
+router.post('/', upload.any(), auditLog('create', 'Product'), async (req, res) => {
   try {
+    console.log('📦 Product creation request received');
+    console.log('Body keys:', Object.keys(req.body));
+    console.log('Name:', req.body.name);
+    console.log('Category:', req.body.category);
+    console.log('Description:', req.body.description);
+    console.log('Files:', req.files ? Object.keys(req.files) : 'none');
+    
+    // Validate required fields
+    if (!req.body.name || !req.body.description) {
+      console.log('❌ Missing name or description');
+      return res.status(400).json({
+        success: false,
+        message: 'Name and description are required',
+      });
+    }
+
+    if (!req.body.category) {
+      console.log('❌ Missing category');
+      return res.status(400).json({
+        success: false,
+        message: 'Category is required',
+      });
+    }
+
+    // Transform price fields if they come as flat structure
+    const productData = { ...req.body };
+    
+    // Handle price structure (support both nested and flat formats)
+    if (req.body['price[mrp]'] || req.body['price[selling]']) {
+      productData.price = {
+        mrp: parseFloat(req.body['price[mrp]'] || 0),
+        selling: parseFloat(req.body['price[selling]'] || 0),
+        discount: parseFloat(req.body['price[discount]'] || 0),
+      };
+      delete productData['price[mrp]'];
+      delete productData['price[selling]'];
+      delete productData['price[discount]'];
+    } else if (!productData.price && (req.body.mrp || req.body.sellingPrice)) {
+      // Handle flat structure from frontend
+      productData.price = {
+        mrp: parseFloat(req.body.mrp || 0),
+        selling: parseFloat(req.body.sellingPrice || req.body.selling || 0),
+        discount: parseFloat(req.body.discount || 0),
+      };
+    } else if (productData.price && typeof productData.price === 'object') {
+      // Ensure all price values are numbers if price object exists
+      productData.price = {
+        mrp: parseFloat(productData.price.mrp || 0),
+        selling: parseFloat(productData.price.selling || 0),
+        discount: parseFloat(productData.price.discount || 0),
+      };
+    }
+
+    // Handle shipping structure
+    if (req.body['shipping[weight]']) {
+      productData.shipping = {
+        weight: parseFloat(req.body['shipping[weight]'] || 0),
+        dimensions: {
+          length: parseFloat(req.body['shipping[dimensions][length]'] || 0),
+          width: parseFloat(req.body['shipping[dimensions][width]'] || 0),
+          height: parseFloat(req.body['shipping[dimensions][height]'] || 0),
+        },
+        codAvailable: req.body['shipping[codAvailable]'] === 'true' || req.body['shipping[codAvailable]'] === true,
+        deliveryDays: req.body['shipping[deliveryDays]'] || '3-5 days',
+      };
+      delete productData['shipping[weight]'];
+      delete productData['shipping[dimensions][length]'];
+      delete productData['shipping[dimensions][width]'];
+      delete productData['shipping[dimensions][height]'];
+      delete productData['shipping[codAvailable]'];
+      delete productData['shipping[deliveryDays]'];
+    }
+
+    // Handle attributes structure
+    if (req.body['attributes[colors]']) {
+      productData.attributes = {
+        colors: JSON.parse(req.body['attributes[colors]'] || '[]'),
+        material: req.body['attributes[material]'] || '',
+        sizes: JSON.parse(req.body['attributes[sizes]'] || '[]'),
+        occasion: JSON.parse(req.body['attributes[occasion]'] || '[]'),
+        capacity: req.body['attributes[capacity]'] || '',
+        closureType: req.body['attributes[closureType]'] || '',
+      };
+      delete productData['attributes[colors]'];
+      delete productData['attributes[material]'];
+      delete productData['attributes[sizes]'];
+      delete productData['attributes[occasion]'];
+      delete productData['attributes[capacity]'];
+      delete productData['attributes[closureType]'];
+    }
+
+    // Parse JSON strings
+    if (typeof productData.tags === 'string') {
+      productData.tags = JSON.parse(productData.tags);
+    }
+    if (typeof productData.features === 'string') {
+      productData.features = JSON.parse(productData.features);
+    }
+    
+    // Ensure numeric fields are numbers
+    if (productData.stock) productData.stock = parseInt(productData.stock);
+    if (productData.lowStockThreshold) productData.lowStockThreshold = parseInt(productData.lowStockThreshold);
+
+    // Handle uploaded files
+    if (req.files && req.files.length > 0) {
+      const mainImageFile = req.files.find(f => f.fieldname === 'mainImage');
+      const hoverImageFile = req.files.find(f => f.fieldname === 'hoverImage');
+      const imageFiles = req.files.filter(f => f.fieldname === 'images');
+      
+      if (mainImageFile) {
+        productData.mainImage = `/uploads/products/${mainImageFile.filename}`;
+      }
+      if (hoverImageFile) {
+        productData.hoverImage = `/uploads/products/${hoverImageFile.filename}`;
+      }
+      if (imageFiles.length > 0) {
+        productData.images = imageFiles.map(file => ({
+          url: `/uploads/products/${file.filename}`,
+          alt: productData.name || 'Product image'
+        }));
+      }
+    }
+
+    console.log('✅ Creating product with data:', {
+      name: productData.name,
+      category: productData.category,
+      price: productData.price,
+      stock: productData.stock
+    });
+
     const product = await Product.create({
-      ...req.body,
+      ...productData,
       createdBy: req.user._id,
     });
+
+    console.log('✅ Product created successfully:', product._id);
 
     res.status(201).json({
       success: true,
@@ -147,9 +295,14 @@ router.post('/', auditLog('create', 'Product'), async (req, res) => {
       message: 'Product created successfully',
     });
   } catch (error) {
+    console.error('Product creation error:', error);
     res.status(400).json({
       success: false,
       message: error.message,
+      errors: error.errors ? Object.keys(error.errors).map(key => ({
+        field: key,
+        message: error.errors[key].message
+      })) : undefined,
     });
   }
 });

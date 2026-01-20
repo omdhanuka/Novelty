@@ -74,3 +74,63 @@ export const reviewAPI = {
   update: (id, data) => api.put(`/reviews/${id}`, data),
   delete: (id) => api.delete(`/reviews/${id}`),
 };
+
+// Admin API functions
+export const adminAPI = {
+  // Dashboard
+  getDashboardMetrics: () => api.get('/admin/dashboard/metrics'),
+  getSalesReport: (period) => api.get(`/admin/dashboard/sales-report?period=${period}`),
+  getInventoryReport: () => api.get('/admin/dashboard/inventory-report'),
+  
+  // Products
+  products: {
+    getAll: (params) => api.get('/admin/products', { params }),
+    getById: (id) => api.get(`/admin/products/${id}`),
+    create: (data) => api.post('/admin/products', data),
+    update: (id, data) => api.put(`/admin/products/${id}`, data),
+    delete: (id) => api.delete(`/admin/products/${id}`),
+    updateStock: (id, data) => api.patch(`/admin/products/${id}/stock`, data),
+    bulkDelete: (ids) => api.post('/admin/products/bulk-delete', { ids }),
+  },
+  
+  // Categories
+  categories: {
+    getAll: (params) => api.get('/admin/categories', { params }),
+    getById: (id) => api.get(`/admin/categories/${id}`),
+    create: (data) => api.post('/admin/categories', data),
+    update: (id, data) => api.put(`/admin/categories/${id}`, data),
+    delete: (id) => api.delete(`/admin/categories/${id}`),
+    toggleStatus: (id) => api.patch(`/admin/categories/${id}/toggle-status`),
+    reorder: (categories) => api.patch('/admin/categories/reorder', { categories }),
+    bulkDelete: (ids) => api.post('/admin/categories/bulk-delete', { ids }),
+  },
+  
+  // Orders
+  orders: {
+    getAll: (params) => api.get('/admin/orders', { params }),
+    getById: (id) => api.get(`/admin/orders/${id}`),
+    updateStatus: (id, status) => api.patch(`/admin/orders/${id}/status`, { status }),
+  },
+  
+  // Customers
+  customers: {
+    getAll: (params) => api.get('/admin/customers', { params }),
+    getById: (id) => api.get(`/admin/customers/${id}`),
+  },
+  
+  // Coupons
+  coupons: {
+    getAll: (params) => api.get('/admin/coupons', { params }),
+    getById: (id) => api.get(`/admin/coupons/${id}`),
+    create: (data) => api.post('/admin/coupons', data),
+    update: (id, data) => api.put(`/admin/coupons/${id}`, data),
+    delete: (id) => api.delete(`/admin/coupons/${id}`),
+    toggleStatus: (id) => api.patch(`/admin/coupons/${id}/toggle`),
+  },
+  
+  // Settings
+  settings: {
+    get: () => api.get('/admin/settings'),
+    update: (data) => api.put('/admin/settings', data),
+  },
+};

@@ -17,9 +17,16 @@ const categorySchema = new mongoose.Schema(
     description: {
       type: String,
     },
+    
+    // Images
     image: {
-      type: String,
+      type: String, // Thumbnail image (500x500)
     },
+    bannerImage: {
+      type: String, // Banner image (1200x400)
+    },
+    
+    // Hierarchy
     parentCategory: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Category',
@@ -29,6 +36,49 @@ const categorySchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Category',
     }],
+    
+    // Category Type
+    type: {
+      type: String,
+      enum: ['PRODUCT', 'COLLECTION', 'OCCASION'],
+      default: 'PRODUCT',
+    },
+    
+    // Display Controls
+    status: {
+      type: String,
+      enum: ['ACTIVE', 'HIDDEN'],
+      default: 'ACTIVE',
+    },
+    showOnHomepage: {
+      type: Boolean,
+      default: true,
+    },
+    showInNavbar: {
+      type: Boolean,
+      default: true,
+    },
+    showInFooter: {
+      type: Boolean,
+      default: false,
+    },
+    sortOrder: {
+      type: Number,
+      default: 0,
+    },
+    
+    // SEO
+    seoTitle: {
+      type: String,
+    },
+    seoDescription: {
+      type: String,
+    },
+    seoKeywords: {
+      type: String,
+    },
+    
+    // Legacy field support
     isActive: {
       type: Boolean,
       default: true,
@@ -36,16 +86,6 @@ const categorySchema = new mongoose.Schema(
     order: {
       type: Number,
       default: 0,
-    },
-    showOnHomepage: {
-      type: Boolean,
-      default: true,
-    },
-    seoTitle: {
-      type: String,
-    },
-    seoDescription: {
-      type: String,
     },
   },
   {

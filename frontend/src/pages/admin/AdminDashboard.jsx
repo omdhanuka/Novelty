@@ -27,7 +27,7 @@ const AdminDashboard = () => {
     queryKey: ['sales-report', period],
     queryFn: async () => {
       const token = localStorage.getItem('adminToken');
-      const { data } = await api.get(`/api/admin/dashboard/sales-report?period=${period}`, {
+      const { data } = await api.get(`/admin/dashboard/sales-report?period=${period}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return data.data;
