@@ -8,6 +8,7 @@ import {
   TrashIcon,
   MagnifyingGlassIcon,
   XMarkIcon,
+  PhotoIcon,
 } from '@heroicons/react/24/outline';
 
 const AdminProducts = () => {
@@ -17,6 +18,8 @@ const AdminProducts = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [status, setStatus] = useState('');
   const [stockFilter, setStockFilter] = useState('');
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
   const queryClient = useQueryClient();
 
   // Debounce search
@@ -56,6 +59,24 @@ const AdminProducts = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-products']);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }) => {
+      const token = localStorage.getItem('adminToken');
+      const { data: response } = await api.put(`/admin/products/${id}`, data, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['admin-products']);
+      setShowEditModal(false);
+      setEditingProduct(null);
+    },
+    onError: (error) => {
+      alert(error.response?.data?.message || 'Failed to update product');
     },
   });
 
@@ -192,7 +213,7 @@ const AdminProducts = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <img
-                          src={product.mainImage || product.images?.[0]?.url || 'https://via.placeholder.com/40'}
+                          src={`http://localhost:5000${product.mainImage}` || 'https://via.placeholder.com/40'}
                           alt={product.name}
                           className="h-10 w-10 rounded object-cover bg-gray-100"
                           onError={(e) => {
@@ -246,7 +267,10 @@ const AdminProducts = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button
-                        onClick={() => {/* Navigate to edit */}}
+                        onClick={() => {
+                          setEditingProduct(product);
+                          setShowEditModal(true);
+                        }}
                         className="text-gray-600 hover:text-gray-900 mr-3"
                       >
                         <PencilIcon className="h-5 w-5" />
@@ -314,6 +338,166 @@ const AdminProducts = () => {
           </>
         )}
       </div>
+
+      {/* Edit Product Modal */}
+      {showEditModal && editingProduct && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex min-h-screen items-center justify-center p-4">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowEditModal(false)}></div>
+            
+            <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              {/* Header */}
+              <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
+                <h3 className="text-lg font-medium">Edit Product</h3>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="text-gray-400 hover:text-gray-500"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const updateData = {
+                  name: formData.get('name'),
+                  description: formData.get('description'),
+                  price: {
+                    mrp: parseFloat(formData.get('mrp')),
+                    selling: parseFloat(formData.get('selling')),
+                  },
+                  stock: parseInt(formData.get('stock')),
+                  status: formData.get('status'),
+                };
+                updateMutation.mutate({ id: editingProduct._id, data: updateData });
+              }} className="p-6 space-y-6">
+                
+                {/* Basic Info */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Product Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    defaultValue={editingProduct.name}
+                    required
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    name="description"
+                    rows={4}
+                    defaultValue={editingProduct.description}
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500"
+                  />
+                </div>
+
+                {/* Pricing */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      MRP (₹) *
+                    </label>
+                    <input
+                      type="number"
+                      name="mrp"
+                      defaultValue={editingProduct.price?.mrp}
+                      required
+                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Selling Price (₹) *
+                    </label>
+                    <input
+                      type="number"
+                      name="selling"
+                      defaultValue={editingProduct.price?.selling}
+                      required
+                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Stock */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Stock Quantity *
+                    </label>
+                    <input
+                      type="number"
+                      name="stock"
+                      defaultValue={editingProduct.stock}
+                      required
+                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Status
+                    </label>
+                    <select
+                      name="status"
+                      defaultValue={editingProduct.status}
+                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500"
+                    >
+                      <option value="active">Active</option>
+                      <option value="draft">Draft</option>
+                      <option value="out_of_stock">Out of Stock</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Image Preview */}
+                {editingProduct.mainImage && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Current Image
+                    </label>
+                    <img
+                      src={`http://localhost:5000${editingProduct.mainImage}`}
+                      alt={editingProduct.name}
+                      className="h-32 w-32 rounded object-cover border"
+                      onError={(e) => {
+                        e.target.src = 'https://via.placeholder.com/128?text=No+Image';
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Buttons */}
+                <div className="flex justify-end gap-3 pt-4 border-t">
+                  <button
+                    type="button"
+                    onClick={() => setShowEditModal(false)}
+                    disabled={updateMutation.isPending}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={updateMutation.isPending}
+                    className="px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-md hover:bg-gray-800 disabled:opacity-50"
+                  >
+                    {updateMutation.isPending ? 'Updating...' : 'Update Product'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -78,6 +78,7 @@ const AdminAddProduct = () => {
   const [tempKeyword, setTempKeyword] = useState('');
   const [imagePreviews, setImagePreviews] = useState([]);
   const [mainImagePreview, setMainImagePreview] = useState(null);
+  const [errors, setErrors] = useState({});
 
   // Fetch categories
   const { data: categoriesData } = useQuery({
@@ -103,6 +104,50 @@ const AdminAddProduct = () => {
       setFormData(prev => ({ ...prev, sku }));
     }
   }, [formData.name, formData.sku]);
+
+  // Validation function
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.name.trim()) {
+      newErrors.name = 'Please fill up the product name';
+    }
+    
+    if (!formData.description.trim()) {
+      newErrors.description = 'Please fill up the description';
+    }
+    
+    if (!formData.category) {
+      newErrors.category = 'Please select a category';
+    }
+    
+    if (!formData.sku.trim()) {
+      newErrors.sku = 'SKU is required';
+    }
+    
+    if (!formData.mrp || formData.mrp <= 0) {
+      newErrors.mrp = 'Please enter a valid MRP';
+    }
+    
+    if (!formData.sellingPrice || formData.sellingPrice <= 0) {
+      newErrors.sellingPrice = 'Please enter a valid selling price';
+    }
+    
+    if (formData.sellingPrice > formData.mrp) {
+      newErrors.sellingPrice = 'Selling price cannot be greater than MRP';
+    }
+    
+    if (!formData.stock || formData.stock < 0) {
+      newErrors.stock = 'Please enter a valid stock quantity';
+    }
+    
+    if (!formData.mainImage) {
+      newErrors.mainImage = 'Please upload a main image';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   // Create product mutation
   const createProductMutation = useMutation({
@@ -180,6 +225,10 @@ const AdminAddProduct = () => {
     onSuccess: () => {
       navigate('/admin/products');
     },
+    onError: (error) => {
+      const errorMsg = error.response?.data?.message || 'Failed to create product';
+      alert(errorMsg);
+    },
   });
 
   const handleInputChange = (e) => {
@@ -231,7 +280,20 @@ const AdminAddProduct = () => {
     }));
   };
 
-  const handleSubmit = (status) => {
+  const handleSubmitWithStatus = (status) => {
+    // Clear previous errors
+    setErrors({});
+    
+    // Validate form
+    if (!validateForm()) {
+      // Scroll to first error
+      const firstError = document.querySelector('.border-red-500');
+      if (firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+    
     createProductMutation.mutate({ ...formData, status });
   };
 
@@ -279,10 +341,15 @@ const AdminAddProduct = () => {
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                      errors.name ? 'border-red-500' : ''
+                    }`}
                     placeholder="e.g., Bridal Dulhan Purse – Golden"
                     required
                   />
+                  {errors.name && (
+                    <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                  )}
                 </div>
 
                 <div>
@@ -310,10 +377,15 @@ const AdminAddProduct = () => {
                     value={formData.description}
                     onChange={handleInputChange}
                     rows="6"
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                      errors.description ? 'border-red-500' : ''
+                    }`}
                     placeholder="Detailed product description..."
                     required
                   />
+                  {errors.description && (
+                    <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -325,14 +397,21 @@ const AdminAddProduct = () => {
                       name="category"
                       value={formData.category}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                        errors.category ? 'border-red-500' : ''
+                      }`}
                       required
                     >
                       <option value="">Select Category</option>
-                      {categoriesData?.data?.map(cat => (
-                        <option key={cat._id} value={cat._id}>{cat.name}</option>
+                      {categoriesData?.data?.map((cat) => (
+                        <option key={cat._id} value={cat._id}>
+                          {cat.name}
+                        </option>
                       ))}
                     </select>
+                    {errors.category && (
+                      <p className="mt-1 text-sm text-red-600">{errors.category}</p>
+                    )}
                   </div>
 
                   <div>
@@ -411,7 +490,9 @@ const AdminAddProduct = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Main Image (Thumbnail) <span className="text-red-500">*</span>
                   </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                  <div className={`border-2 border-dashed rounded-lg p-4 text-center ${
+                    errors.mainImage ? 'border-red-500' : 'border-gray-300'
+                  }`}>
                     {mainImagePreview ? (
                       <div className="relative inline-block">
                         <img src={mainImagePreview} alt="Main" className="w-48 h-48 object-cover rounded" />
@@ -439,6 +520,9 @@ const AdminAddProduct = () => {
                       </label>
                     )}
                   </div>
+                  {errors.mainImage && (
+                    <p className="mt-1 text-sm text-red-600">{errors.mainImage}</p>
+                  )}
                 </div>
 
                 <div>
@@ -878,11 +962,16 @@ const AdminAddProduct = () => {
                         name="mrp"
                         value={formData.mrp}
                         onChange={handleInputChange}
-                        className="w-full pl-8 pr-4 py-2 border rounded-lg"
+                        className={`w-full pl-8 pr-4 py-2 border rounded-lg ${
+                          errors.mrp ? 'border-red-500' : ''
+                        }`}
                         placeholder="0"
                         required
                       />
                     </div>
+                    {errors.mrp && (
+                      <p className="mt-1 text-sm text-red-600">{errors.mrp}</p>
+                    )}
                   </div>
 
                   <div>
@@ -896,11 +985,16 @@ const AdminAddProduct = () => {
                         name="sellingPrice"
                         value={formData.sellingPrice}
                         onChange={handleInputChange}
-                        className="w-full pl-8 pr-4 py-2 border rounded-lg"
+                        className={`w-full pl-8 pr-4 py-2 border rounded-lg ${
+                          errors.sellingPrice ? 'border-red-500' : ''
+                        }`}
                         placeholder="0"
                         required
                       />
                     </div>
+                    {errors.sellingPrice && (
+                      <p className="mt-1 text-sm text-red-600">{errors.sellingPrice}</p>
+                    )}
                   </div>
 
                   {discount > 0 && (
@@ -923,10 +1017,15 @@ const AdminAddProduct = () => {
                       name="stock"
                       value={formData.stock}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2 border rounded-lg"
+                      className={`w-full px-4 py-2 border rounded-lg ${
+                        errors.stock ? 'border-red-500' : ''
+                      }`}
                       placeholder="0"
                       required
                     />
+                    {errors.stock && (
+                      <p className="mt-1 text-sm text-red-600">{errors.stock}</p>
+                    )}
                   </div>
 
                   <div>
@@ -1002,7 +1101,7 @@ const AdminAddProduct = () => {
               {/* Action Buttons */}
               <div className="bg-white rounded-lg shadow p-6 space-y-3">
                 <button
-                  onClick={() => handleSubmit('draft')}
+                  onClick={() => handleSubmitWithStatus('draft')}
                   disabled={createProductMutation.isPending}
                   className="w-full px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition disabled:opacity-50 flex items-center justify-center gap-2"
                 >
@@ -1010,7 +1109,7 @@ const AdminAddProduct = () => {
                 </button>
 
                 <button
-                  onClick={() => handleSubmit('active')}
+                  onClick={() => handleSubmitWithStatus('active')}
                   disabled={createProductMutation.isPending}
                   className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
                 >
