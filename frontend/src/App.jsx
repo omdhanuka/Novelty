@@ -13,8 +13,6 @@ import ResetPassword from './pages/ResetPassword';
 import UserProfile from './pages/UserProfile';
 
 // User Account imports
-import UserLayout from './components/user/UserLayout';
-import UserDashboard from './pages/user/UserDashboard';
 import UserProfilePage from './pages/user/UserProfilePage';
 import AddressManagement from './pages/user/AddressManagement';
 import MyOrders from './pages/user/MyOrders';
@@ -64,24 +62,46 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-
-              {/* User Account Dashboard */}
               <Route
-                path="/account"
+                path="/orders"
                 element={
                   <ProtectedRoute>
-                    <UserLayout />
+                    <MyOrders />
                   </ProtectedRoute>
                 }
-              >
-                <Route index element={<UserDashboard />} />
-                <Route path="profile" element={<UserProfilePage />} />
-                <Route path="addresses" element={<AddressManagement />} />
-                <Route path="orders" element={<MyOrders />} />
-                <Route path="orders/:orderId" element={<OrderDetails />} />
-                <Route path="wishlist" element={<Wishlist />} />
-                <Route path="change-password" element={<ChangePassword />} />
-              </Route>
+              />
+              <Route
+                path="/orders/:orderId"
+                element={
+                  <ProtectedRoute>
+                    <OrderDetails />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/wishlist"
+                element={
+                  <ProtectedRoute>
+                    <Wishlist />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/addresses"
+                element={
+                  <ProtectedRoute>
+                    <AddressManagement />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/change-password"
+                element={
+                  <ProtectedRoute>
+                    <ChangePassword />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Admin routes */}
               <Route path="/admin/login" element={<AdminLogin />} />

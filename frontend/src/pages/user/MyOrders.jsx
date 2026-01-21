@@ -1,14 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Filter, Package, Clock, CheckCircle, XCircle, Eye, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
+import { api } from '../../lib/api';
 
 const MyOrders = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock orders data
-  const orders = [
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = async () => {
+    try {
+      const response = await api.get('/user/orders');
+      if (response.data.success) {
+        setOrders(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /*const orders = [
     {
       id: 'ORD001234',
       date: '2024-01-15',
@@ -51,7 +72,7 @@ const MyOrders = () => {
         { name: 'Crossbody Bag', image: 'https://via.placeholder.com/80', qty: 1, price: 1999 },
       ],
     },
-  ];
+  ];*/
 
   const statusConfig = {
     delivered: { label: 'Delivered', color: 'bg-green-100 text-green-800', icon: CheckCircle },
@@ -78,7 +99,10 @@ const MyOrders = () => {
   };
 
   return (
-    <div className="max-w-6xl">
+    <>
+      <Header />
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="max-w-6xl mx-auto px-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -88,6 +112,12 @@ const MyOrders = () => {
         <p className="text-gray-600 mt-2">Track and manage your orders</p>
       </motion.div>
 
+      {loading ? (
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        </div>
+      ) : (
+        <>
       {/* Filters */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -280,7 +310,12 @@ const MyOrders = () => {
           </div>
         </motion.div>
       )}
-    </div>
+        </>
+      )}
+        </div>
+      </div>
+      <Footer />
+    </>
   );
 };
 

@@ -2,9 +2,12 @@ import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { User, Mail, Phone, Save, Camera } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
+import { api } from '../../lib/api';
 
 const UserProfilePage = () => {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -30,21 +33,27 @@ const UserProfilePage = () => {
     setMessage('');
 
     try {
-      // API call to update profile
-      // const response = await api.put('/auth/profile', formData);
+      const response = await api.put('/auth/profile', {
+        name: formData.name,
+        phone: formData.phone,
+      });
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setMessage('Profile updated successfully!');
+      if (response.data.success) {
+        setUser(response.data.data);
+        setMessage('Profile updated successfully!');
+      }
     } catch (err) {
-      setError('Failed to update profile');
+      setError(err.response?.data?.message || 'Failed to update profile');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-4xl">
+    <>
+      <Header />
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="max-w-4xl mx-auto px-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -217,7 +226,10 @@ const UserProfilePage = () => {
           </div>
         </div>
       </motion.div>
-    </div>
+        </div>
+      </div>
+      <Footer />
+    </>
   );
 };
 

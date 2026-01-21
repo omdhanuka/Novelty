@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { Lock, Eye, EyeOff, Shield, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
+import { api } from '../../lib/api';
 
 const ChangePassword = () => {
   const [loading, setLoading] = useState(false);
@@ -65,20 +68,19 @@ const ChangePassword = () => {
     }
 
     try {
-      // API call to change password
-      // const response = await api.post('/auth/change-password', {
-      //   currentPassword: formData.currentPassword,
-      //   newPassword: formData.newPassword,
-      // });
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setMessage('Password changed successfully!');
-      setFormData({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
+      const response = await api.post('/auth/change-password', {
+        currentPassword: formData.currentPassword,
+        newPassword: formData.newPassword,
       });
+      
+      if (response.data.success) {
+        setMessage('Password changed successfully!');
+        setFormData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: '',
+        });
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to change password');
     } finally {
@@ -87,7 +89,10 @@ const ChangePassword = () => {
   };
 
   return (
-    <div className="max-w-3xl">
+    <>
+      <Header />
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="max-w-3xl mx-auto px-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -305,7 +310,10 @@ const ChangePassword = () => {
           </li>
         </ul>
       </motion.div>
-    </div>
+        </div>
+      </div>
+      <Footer />
+    </>
   );
 };
 

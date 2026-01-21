@@ -11,6 +11,11 @@ import orderRoutes from './routes/orderRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 
+// User routes
+import userOrderRoutes from './routes/userOrderRoutes.js';
+import userWishlistRoutes from './routes/userWishlistRoutes.js';
+import userAddressRoutes from './routes/userAddressRoutes.js';
+
 // Admin routes
 import adminRoutes from './routes/adminRoutes.js';
 import adminProductRoutes from './routes/adminProductRoutes.js';
@@ -38,6 +43,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/reviews', reviewRoutes);
+
+// User routes
+app.use('/api/user', userOrderRoutes);
+app.use('/api/user', userWishlistRoutes);
+app.use('/api/user', userAddressRoutes);
 
 // Admin routes
 app.use('/api/admin', adminRoutes);

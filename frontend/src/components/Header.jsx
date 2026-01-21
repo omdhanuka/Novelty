@@ -10,6 +10,9 @@ import {
   X,
   LogOut,
   UserCircle,
+  Package,
+  MapPin,
+  Lock,
 } from 'lucide-react';
 import { useCartStore, useWishlistStore, useUIStore } from '../store';
 import { useAuth } from '../context/AuthContext';
@@ -167,14 +170,6 @@ const Header = () => {
                           <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                         </div>
                         <Link
-                          to="/account"
-                          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                          onClick={() => setShowUserMenu(false)}
-                        >
-                          <UserCircle size={16} />
-                          My Account
-                        </Link>
-                        <Link
                           to="/profile"
                           className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                           onClick={() => setShowUserMenu(false)}
@@ -182,13 +177,45 @@ const Header = () => {
                           <UserCircle size={16} />
                           My Profile
                         </Link>
+                        <Link
+                          to="/orders"
+                          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <Package size={16} />
+                          My Orders
+                        </Link>
+                        <Link
+                          to="/wishlist"
+                          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <Heart size={16} />
+                          My Wishlist
+                        </Link>
+                        <Link
+                          to="/addresses"
+                          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <MapPin size={16} />
+                          My Addresses
+                        </Link>
+                        <Link
+                          to="/change-password"
+                          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <Lock size={16} />
+                          Change Password
+                        </Link>
                         <button
                           onClick={() => {
                             logout();
                             setShowUserMenu(false);
                             navigate('/');
                           }}
-                          className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                          className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 border-t border-gray-100 mt-2"
                         >
                           <LogOut size={16} />
                           Logout

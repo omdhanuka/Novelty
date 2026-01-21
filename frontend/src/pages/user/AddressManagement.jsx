@@ -1,9 +1,32 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, MapPin, Edit2, Trash2, Home, Briefcase, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
+import { api } from '../../lib/api';
 
 const AddressManagement = () => {
-  const [addresses, setAddresses] = useState([
+  const [addresses, setAddresses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAddresses();
+  }, []);
+
+  const fetchAddresses = async () => {
+    try {
+      const response = await api.get('/user/addresses');
+      if (response.data.success) {
+        setAddresses(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching addresses:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /*const [addresses, setAddresses] = useState([
     {
       id: 1,
       type: 'Home',
@@ -26,7 +49,7 @@ const AddressManagement = () => {
       pincode: '560038',
       isDefault: false,
     },
-  ]);
+  ]);*/
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -62,38 +85,52 @@ const AddressManagement = () => {
     setShowForm(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (confirm('Are you sure you want to delete this address?')) {
-      setAddresses(addresses.filter((addr) => addr.id !== id));
+      try {
+        const response = await api.delete(`/user/addresses/${id}`);
+        if (response.data.success) {
+          setAddresses(response.data.data);
+        }
+      } catch (error) {
+        console.error('Error deleting address:', error);
+      }
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (editingId) {
-      // Update existing
-      setAddresses(addresses.map((addr) => 
-        addr.id === editingId ? { ...formData, id: editingId } : addr
-      ));
-    } else {
-      // Add new
-      const newAddress = {
-        ...formData,
-        id: Date.now(),
-      };
-      setAddresses([...addresses, newAddress]);
+    try {
+      let response;
+      if (editingId) {
+        // Update existing
+        response = await api.put(`/user/addresses/${editingId}`, formData);
+      } else {
+        // Add new
+        response = await api.post('/user/addresses', formData);
+      }
+      
+      if (response.data.success) {
+        setAddresses(response.data.data);
+        setShowForm(false);
+        setEditingId(null);
+      }
+    } catch (error) {
+      console.error('Error saving address:', error);
+      alert(error.response?.data?.message || 'Failed to save address');
     }
-
-    setShowForm(false);
-    setEditingId(null);
   };
 
-  const handleSetDefault = (id) => {
-    setAddresses(addresses.map((addr) => ({
-      ...addr,
-      isDefault: addr.id === id,
-    })));
+  const handleSetDefault = async (id) => {
+    try {
+      const response = await api.patch(`/user/addresses/${id}/default`);
+      if (response.data.success) {
+        setAddresses(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error setting default address:', error);
+    }
   };
 
   const getIcon = (type) => {
@@ -108,7 +145,10 @@ const AddressManagement = () => {
   };
 
   return (
-    <div className="max-w-6xl">
+    <>
+      <Header />
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="max-w-6xl mx-auto px-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -132,7 +172,7 @@ const AddressManagement = () => {
         <AnimatePresence>
           {addresses.map((address, index) => (
             <motion.div
-              key={address.id}
+              key={address._id || address.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9 }}
@@ -171,7 +211,7 @@ const AddressManagement = () => {
               <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
                 {!address.isDefault && (
                   <button
-                    onClick={() => handleSetDefault(address.id)}
+                    onClick={() => handleSetDefault(address._id || address.id)}
                     className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
                   >
                     Set as Default
@@ -185,7 +225,7 @@ const AddressManagement = () => {
                   Edit
                 </button>
                 <button
-                  onClick={() => handleDelete(address.id)}
+                  onClick={() => handleDelete(address._id || address.id)}
                   className="inline-flex items-center gap-1 text-sm text-red-600 hover:text-red-700"
                 >
                   <Trash2 size={14} />
@@ -386,7 +426,10 @@ const AddressManagement = () => {
           </>
         )}
       </AnimatePresence>
-    </div>
+        </div>
+      </div>
+      <Footer />
+    </>
   );
 };
 
