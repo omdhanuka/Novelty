@@ -8,18 +8,23 @@ import {
   User,
   Menu,
   X,
+  LogOut,
+  UserCircle,
 } from 'lucide-react';
 import { useCartStore, useWishlistStore, useUIStore } from '../store';
+import { useAuth } from '../context/AuthContext';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showMegaMenu, setShowMegaMenu] = useState(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   
   const navigate = useNavigate();
   const { items: cartItems, toggleCart } = useCartStore();
   const { items: wishlistItems } = useWishlistStore();
   const { isMobileMenuOpen, toggleMobileMenu } = useUIStore();
+  const { user, isAuthenticated, logout } = useAuth();
   
   const cartItemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
@@ -142,15 +147,74 @@ const Header = () => {
               </motion.button>
 
               {/* Account */}
-              <Link to="/account">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="hidden md:block p-2.5 hover:bg-navy-50 rounded-full transition-colors duration-300"
-                >
-                  <User size={20} className="text-navy-700" />
-                </motion.button>
-              </Link>
+              <div className="relative">
+                {isAuthenticated ? (
+                  <>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="hidden md:block p-2.5 hover:bg-navy-50 rounded-full transition-colors duration-300"
+                      onClick={() => setShowUserMenu(!showUserMenu)}
+                    >
+                      <User size={20} className="text-navy-700" />
+                    </motion.button>
+                    
+                    {/* User Dropdown Menu */}
+                    {showUserMenu && (
+                      <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                        <div className="px-4 py-2 border-b border-gray-100">
+                          <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+                          <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                        </div>
+                        <Link
+                          to="/profile"
+                          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <UserCircle size={16} />
+                          My Profile
+                        </Link>
+                        <button
+                          onClick={() => {
+                            logout();
+                            setShowUserMenu(false);
+                            navigate('/');
+                          }}
+                          className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                        >
+                          <LogOut size={16} />
+                          Logout
+                        </button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="hidden md:flex items-center gap-2 px-4 py-2 hover:bg-navy-50 rounded-lg transition-colors duration-300"
+                      onClick={() => setShowUserMenu(!showUserMenu)}
+                    >
+                      <User size={20} className="text-navy-700" />
+                      <span className="text-sm font-medium text-navy-700">Login</span>
+                    </motion.button>
+                    
+                    {/* Login Dropdown Menu */}
+                    {showUserMenu && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                        <Link
+                          to="/login"
+                          className="block px-4 py-3 text-sm text-navy-700 hover:bg-navy-50 font-medium"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          Login
+                        </Link>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
 
               {/* Wishlist */}
               <Link to="/wishlist" className="relative">

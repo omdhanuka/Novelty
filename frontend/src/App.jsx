@@ -3,6 +3,15 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient';
 import HomePage from './pages/HomePage';
 
+// User Auth imports
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import Register from './pages/Register';
+import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import UserProfile from './pages/UserProfile';
+
 // Admin imports
 import { AdminProvider } from './context/AdminContext';
 import AdminProtectedRoute from './components/admin/AdminProtectedRoute';
@@ -24,13 +33,32 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-        <AdminProvider>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<HomePage />} />
+        <AuthProvider>
+          <AdminProvider>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<HomePage />} />
 
-            {/* Admin routes */}
-            <Route path="/admin/login" element={<AdminLogin />} />
+              {/* User Auth routes */}
+              <Route path="/register" element={<Register />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password/:token" element={<ResetPassword />} />
+
+              {/* Protected User routes */}
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <UserProfile />
+                  </ProtectedRoute>
+                }
+              />
+              {/* Add more protected routes here */}
+              {/* <Route path="/orders" element={<ProtectedRoute><UserOrders /></ProtectedRoute>} /> */}
+
+              {/* Admin routes */}
+              <Route path="/admin/login" element={<AdminLogin />} />
             <Route
               path="/admin"
               element={
@@ -52,7 +80,8 @@ function App() {
               <Route path="settings" element={<AdminSettings />} />
             </Route>
           </Routes>
-        </AdminProvider>
+          </AdminProvider>
+        </AuthProvider>
       </Router>
     </QueryClientProvider>
   );
