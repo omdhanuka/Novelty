@@ -12,6 +12,16 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import UserProfile from './pages/UserProfile';
 
+// User Account imports
+import UserLayout from './components/user/UserLayout';
+import UserDashboard from './pages/user/UserDashboard';
+import UserProfilePage from './pages/user/UserProfilePage';
+import AddressManagement from './pages/user/AddressManagement';
+import MyOrders from './pages/user/MyOrders';
+import OrderDetails from './pages/user/OrderDetails';
+import Wishlist from './pages/user/Wishlist';
+import ChangePassword from './pages/user/ChangePassword';
+
 // Admin imports
 import { AdminProvider } from './context/AdminContext';
 import AdminProtectedRoute from './components/admin/AdminProtectedRoute';
@@ -54,8 +64,24 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              {/* Add more protected routes here */}
-              {/* <Route path="/orders" element={<ProtectedRoute><UserOrders /></ProtectedRoute>} /> */}
+
+              {/* User Account Dashboard */}
+              <Route
+                path="/account"
+                element={
+                  <ProtectedRoute>
+                    <UserLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<UserDashboard />} />
+                <Route path="profile" element={<UserProfilePage />} />
+                <Route path="addresses" element={<AddressManagement />} />
+                <Route path="orders" element={<MyOrders />} />
+                <Route path="orders/:orderId" element={<OrderDetails />} />
+                <Route path="wishlist" element={<Wishlist />} />
+                <Route path="change-password" element={<ChangePassword />} />
+              </Route>
 
               {/* Admin routes */}
               <Route path="/admin/login" element={<AdminLogin />} />

@@ -167,6 +167,14 @@ const Header = () => {
                           <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                         </div>
                         <Link
+                          to="/account"
+                          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <UserCircle size={16} />
+                          My Account
+                        </Link>
+                        <Link
                           to="/profile"
                           className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                           onClick={() => setShowUserMenu(false)}
