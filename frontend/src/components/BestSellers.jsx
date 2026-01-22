@@ -122,16 +122,16 @@ const ProductCard = ({ product, index }) => {
             {/* Price */}
             <div className="flex items-baseline gap-3 mb-4">
               <span className="font-heading text-3xl text-navy-950">
-                ₹{product.price}
+                ₹{product.price?.selling?.toLocaleString('en-IN') || 0}
               </span>
-              {product.originalPrice && (
+              {product.price?.mrp && product.price.mrp > product.price.selling && (
                 <>
                   <span className="text-base text-navy-400 line-through">
-                    ₹{product.originalPrice}
+                    ₹{product.price.mrp.toLocaleString('en-IN')}
                   </span>
-                  {discount > 0 && (
+                  {product.price.discount > 0 && (
                     <span className="text-xs font-bold text-gold-600">
-                      {discount}% OFF
+                      {product.price.discount}% OFF
                     </span>
                   )}
                 </>

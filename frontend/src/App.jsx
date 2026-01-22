@@ -20,6 +20,10 @@ import OrderDetails from './pages/user/OrderDetails';
 import Wishlist from './pages/user/Wishlist';
 import ChangePassword from './pages/user/ChangePassword';
 
+// Product pages
+import ProductList from './pages/user/ProductList';
+import ProductDetails from './pages/user/ProductDetails';
+
 // Admin imports
 import { AdminProvider } from './context/AdminContext';
 import AdminProtectedRoute from './components/admin/AdminProtectedRoute';
@@ -46,6 +50,10 @@ function App() {
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<HomePage />} />
+
+              {/* Product routes */}
+              <Route path="/products" element={<ProductList />} />
+              <Route path="/products/:slug" element={<ProductDetails />} />
 
               {/* User Auth routes */}
               <Route path="/register" element={<Register />} />

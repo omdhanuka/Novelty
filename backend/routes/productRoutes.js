@@ -15,9 +15,16 @@ router.get('/', async (req, res) => {
       maxPrice,
       sort = '-createdAt',
       search,
+      colors,
+      material,
+      stockStatus,
+      discount,
+      isBestSeller,
+      isNewArrival,
+      isFeatured,
     } = req.query;
 
-    const query = {};
+    const query = { status: 'active' }; // Only show active products
 
     // Category filter
     if (category) query.category = category;
@@ -25,10 +32,36 @@ router.get('/', async (req, res) => {
 
     // Price filter
     if (minPrice || maxPrice) {
-      query.price = {};
-      if (minPrice) query.price.$gte = Number(minPrice);
-      if (maxPrice) query.price.$lte = Number(maxPrice);
+      query['price.selling'] = {};
+      if (minPrice) query['price.selling'].$gte = Number(minPrice);
+      if (maxPrice) query['price.selling'].$lte = Number(maxPrice);
     }
+
+    // Color filter
+    if (colors) {
+      const colorArray = colors.split(',');
+      query['attributes.colors'] = { $in: colorArray };
+    }
+
+    // Material filter
+    if (material) {
+      query['attributes.material'] = material;
+    }
+
+    // Stock status filter
+    if (stockStatus) {
+      query.stockStatus = stockStatus;
+    }
+
+    // Discount filter (e.g., discount=20 means 20% or more)
+    if (discount) {
+      query['price.discount'] = { $gte: Number(discount) };
+    }
+
+    // Flags filter
+    if (isBestSeller === 'true') query.isBestSeller = true;
+    if (isNewArrival === 'true') query.isNewArrival = true;
+    if (isFeatured === 'true') query.isFeatured = true;
 
     // Search
     if (search) {
@@ -37,13 +70,26 @@ router.get('/', async (req, res) => {
 
     const skip = (page - 1) * limit;
 
+    // Sort options mapping
+    let sortOption = '-createdAt';
+    if (sort === 'price_asc') sortOption = 'price.selling';
+    else if (sort === 'price_desc') sortOption = '-price.selling';
+    else if (sort === 'newest') sortOption = '-createdAt';
+    else if (sort === 'bestseller') sortOption = '-sold';
+    else if (sort === 'rating') sortOption = '-rating';
+
     const products = await Product.find(query)
       .populate('category', 'name slug')
-      .sort(sort)
+      .sort(sortOption)
       .limit(Number(limit))
       .skip(skip);
 
     const total = await Product.countDocuments(query);
+
+    // Get filter options
+    const categories = await Product.distinct('category', { status: 'active' });
+    const availableColors = await Product.distinct('attributes.colors', { status: 'active' });
+    const availableMaterials = await Product.distinct('attributes.material', { status: 'active' });
 
     res.json({
       success: true,
@@ -54,6 +100,11 @@ router.get('/', async (req, res) => {
         total,
         pages: Math.ceil(total / limit),
       },
+      filters: {
+        categories,
+        colors: availableColors.filter(Boolean),
+        materials: availableMaterials.filter(Boolean),
+      },
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -63,7 +114,16 @@ router.get('/', async (req, res) => {
 // Get single product by ID
 router.get('/:id', async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id).populate('category', 'name slug');
+    let product;
+    
+    // Check if it's an ObjectId or slug
+    if (req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      // It's an ObjectId
+      product = await Product.findById(req.params.id).populate('category', 'name slug');
+    } else {
+      // It's a slug
+      product = await Product.findOne({ slug: req.params.id }).populate('category', 'name slug');
+    }
     
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });

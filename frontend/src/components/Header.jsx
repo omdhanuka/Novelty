@@ -118,6 +118,13 @@ const Header = () => {
 
             {/* Navigation - Desktop */}
             <nav className="hidden lg:flex items-center gap-1">
+              <Link
+                to="/products"
+                className="relative px-4 py-2 text-navy-700 hover:text-navy-950 font-medium transition-colors duration-300 group"
+              >
+                Shop All
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gold-600 group-hover:w-full transition-all duration-300"></span>
+              </Link>
               {categories.map((category) => (
                 <div
                   key={category.slug}

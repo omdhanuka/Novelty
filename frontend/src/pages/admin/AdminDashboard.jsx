@@ -186,7 +186,7 @@ const AdminDashboard = () => {
                   <span className="text-sm font-medium text-gray-500">#{index + 1}</span>
                   <div>
                     <p className="text-sm font-medium text-gray-900">{product.name}</p>
-                    <p className="text-xs text-gray-500">₹{product.price}</p>
+                    <p className="text-xs text-gray-500">₹{product.price?.selling?.toLocaleString('en-IN') || 0}</p>
                   </div>
                 </div>
                 <span className="text-sm text-gray-600">{product.sold} sold</span>
