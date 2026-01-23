@@ -53,7 +53,7 @@ function App() {
 
               {/* Product routes */}
               <Route path="/products" element={<ProductList />} />
-              <Route path="/products/:slug" element={<ProductDetails />} />
+              <Route path="/products/:id" element={<ProductDetails />} />
 
               {/* User Auth routes */}
               <Route path="/register" element={<Register />} />

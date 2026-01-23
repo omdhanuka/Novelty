@@ -6,12 +6,35 @@ const router = express.Router();
 // Get all categories
 router.get('/', async (req, res) => {
   try {
-    const categories = await Category.find({ isActive: true })
+    console.log('Fetching categories...');
+    
+    // Try multiple conditions to find categories
+    let categories = await Category.find({ isActive: true })
       .populate('subcategories')
       .sort('order');
-
+    
+    console.log('Found categories with isActive=true:', categories.length);
+    
+    // If no categories found with isActive, try status field
+    if (categories.length === 0) {
+      categories = await Category.find({ status: 'ACTIVE' })
+        .populate('subcategories')
+        .sort('sortOrder');
+      console.log('Found categories with status=ACTIVE:', categories.length);
+    }
+    
+    // If still no categories, get all
+    if (categories.length === 0) {
+      categories = await Category.find()
+        .populate('subcategories')
+        .sort('sortOrder');
+      console.log('Found all categories (no filter):', categories.length);
+    }
+    
+    console.log('Returning categories:', categories.map(c => ({ id: c._id, name: c.name })));
     res.json({ success: true, data: categories });
   } catch (error) {
+    console.error('Category fetch error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });

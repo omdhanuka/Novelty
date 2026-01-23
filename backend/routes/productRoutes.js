@@ -26,8 +26,11 @@ router.get('/', async (req, res) => {
 
     const query = { status: 'active' }; // Only show active products
 
-    // Category filter
-    if (category) query.category = category;
+    // Category filter - handle both single and multiple categories
+    if (category) {
+      const categoryArray = category.split(',').map(c => c.trim());
+      query.category = categoryArray.length === 1 ? categoryArray[0] : { $in: categoryArray };
+    }
     if (subcategory) query.subcategory = subcategory;
 
     // Price filter
@@ -86,8 +89,14 @@ router.get('/', async (req, res) => {
 
     const total = await Product.countDocuments(query);
 
-    // Get filter options
-    const categories = await Product.distinct('category', { status: 'active' });
+    // Get filter options - populate categories with full details
+    const categoryIds = await Product.distinct('category', { status: 'active' });
+    const Category = (await import('../models/Category.js')).default;
+    const categories = await Category.find({ 
+      _id: { $in: categoryIds },
+      status: 'ACTIVE' 
+    }).select('_id name slug');
+    
     const availableColors = await Product.distinct('attributes.colors', { status: 'active' });
     const availableMaterials = await Product.distinct('attributes.material', { status: 'active' });
 

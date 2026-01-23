@@ -44,7 +44,7 @@ const ProductList = () => {
     pages: 0,
   });
 
-  // Fetch products
+  // Fetch products - this will also update available filter options dynamically
   useEffect(() => {
     fetchProducts();
   }, [activeFilters, sortBy, pagination.page, searchQuery]);
@@ -76,7 +76,14 @@ const ProductList = () => {
       if (response.data.success) {
         setProducts(response.data.data);
         setPagination(response.data.pagination);
-        setFilters(response.data.filters || filters);
+        // Update available filter options based on current filters
+        if (response.data.filters) {
+          setFilters({
+            categories: response.data.filters.categories || [],
+            colors: response.data.filters.colors || [],
+            materials: response.data.filters.materials || [],
+          });
+        }
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch products');
@@ -183,67 +190,95 @@ const ProductList = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header/Breadcrumb */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-8">
-        <div className="container mx-auto px-4">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
-            Our Premium Collection
+    <div className="min-h-screen bg-[#F9FAFB]">
+      {/* Header Section - "Our Collection" */}
+      <div 
+        className="w-full bg-[#F3F4F6] border-b border-[#E5E7EB]"
+        style={{
+          height: '130px',
+          display: 'flex',
+          alignItems: 'center'
+        }}
+      >
+        <div className="max-w-[1440px] mx-auto px-6 md:px-12 w-full">
+          <h1 
+            className="text-[#111827] mb-1.5" 
+            style={{ 
+              fontFamily: 'Playfair Display, serif', 
+              fontSize: '34px', 
+              fontWeight: 700,
+              letterSpacing: '0.3px'
+            }}
+          >
+            Our Collection
           </h1>
-          <p className="text-indigo-100">
-            Discover {pagination.total} exclusive products
+          <p 
+            className="text-[#6B7280]" 
+            style={{ 
+              fontFamily: 'Inter, sans-serif', 
+              fontSize: '15px', 
+              fontWeight: 400 
+            }}
+          >
+            Discover premium products crafted for you
           </p>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      {/* Main Content Area */}
+      <div className="max-w-[1440px] mx-auto px-6 md:px-12 py-8 md:py-12">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Desktop Filters Sidebar */}
-          <aside className="hidden lg:block w-80 flex-shrink-0">
-            <FilterSidebar
-              filters={filters}
-              activeFilters={activeFilters}
-              onFilterChange={handleFilterChange}
-              onClearFilters={handleClearFilters}
-              isMobile={false}
-            />
+          <aside className="hidden lg:block w-[300px] shrink-0">
+            <div className="bg-white rounded-xl p-5" style={{ boxShadow: '0 6px 18px rgba(0,0,0,0.06)' }}>
+              <FilterSidebar
+                filters={filters}
+                activeFilters={activeFilters}
+                onFilterChange={handleFilterChange}
+                onClearFilters={handleClearFilters}
+                isMobile={false}
+              />
+            </div>
           </aside>
 
           {/* Main Content */}
-          <main className="flex-1">
-            {/* Toolbar */}
-            <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+          <main className="flex-1 min-w-0">
+            {/* Products Navbar - Search & Sort Controls */}
+            <div className="bg-transparent mb-6">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 {/* Search Bar */}
-                <form onSubmit={handleSearch} className="flex-1 max-w-md">
+                <form onSubmit={handleSearch} className="flex-1 max-w-[320px]">
                   <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6B7280]" />
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search products..."
-                      className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Search for bags..."
+                      className="w-full h-10 pl-10 pr-10 bg-white border border-[#E5E7EB] rounded-[10px] focus:ring-2 focus:ring-[#6D28D9] focus:border-[#6D28D9] transition-all"
+                      style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px' }}
                     />
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     {searchQuery && (
                       <button
                         type="button"
                         onClick={() => setSearchQuery('')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#6B7280]"
                       >
-                        <X className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+                        <X className="w-4 h-4" />
                       </button>
                     )}
                   </div>
                 </form>
 
-                <div className="flex items-center gap-4">
+                {/* Right Side Controls */}
+                <div className="flex items-center gap-3">
                   {/* Mobile Filter Button */}
                   <button
                     onClick={() => setShowMobileFilters(true)}
-                    className="lg:hidden flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                    className="lg:hidden flex items-center gap-2 px-4 h-10 bg-[#6D28D9] text-white rounded-[10px] hover:bg-[#5B21B6] transition-colors"
+                    style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '14px' }}
                   >
-                    <Filter className="w-5 h-5" />
+                    <Filter className="w-4 h-4" />
                     Filters
                   </button>
 
@@ -252,35 +287,35 @@ const ProductList = () => {
                     <select
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
-                      className="appearance-none pl-4 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white cursor-pointer"
+                      className="appearance-none h-10 pl-4 pr-10 bg-white border border-[#E5E7EB] rounded-[10px] focus:ring-2 focus:ring-[#6D28D9] focus:border-[#6D28D9] cursor-pointer transition-all"
+                      style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px' }}
                     >
                       <option value="newest">Newest First</option>
                       <option value="price_asc">Price: Low to High</option>
                       <option value="price_desc">Price: High to Low</option>
-                      <option value="bestseller">Best Sellers</option>
-                      <option value="rating">Highest Rated</option>
+                      <option value="popular">Popular</option>
                     </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7280] pointer-events-none" />
                   </div>
 
                   {/* View Mode Toggle */}
-                  <div className="hidden md:flex items-center gap-2 border border-gray-300 rounded-lg p-1">
+                  <div className="hidden md:flex items-center bg-white border border-[#E5E7EB] rounded-[8px] p-0.5">
                     <button
                       onClick={() => setViewMode('grid')}
-                      className={`p-2 rounded ${
+                      className={`w-10 h-10 flex items-center justify-center rounded-[8px] transition-all ${
                         viewMode === 'grid'
-                          ? 'bg-indigo-600 text-white'
-                          : 'text-gray-600 hover:bg-gray-100'
+                          ? 'bg-[#6D28D9] text-white'
+                          : 'text-[#6B7280] hover:bg-[#F3F4F6]'
                       }`}
                     >
                       <Grid className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => setViewMode('list')}
-                      className={`p-2 rounded ${
+                      className={`w-10 h-10 flex items-center justify-center rounded-[8px] transition-all ${
                         viewMode === 'list'
-                          ? 'bg-indigo-600 text-white'
-                          : 'text-gray-600 hover:bg-gray-100'
+                          ? 'bg-[#6D28D9] text-white'
+                          : 'text-[#6B7280] hover:bg-[#F3F4F6]'
                       }`}
                     >
                       <List className="w-5 h-5" />
@@ -288,48 +323,36 @@ const ProductList = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Active Filters Display */}
-              {Object.values(activeFilters).some(v => 
-                Array.isArray(v) ? v.length > 0 : v && v !== 0 && v !== 10000
-              ) && (
-                <div className="flex items-center gap-2 flex-wrap mt-4 pt-4 border-t border-gray-200">
-                  <span className="text-sm text-gray-600 font-medium">Active Filters:</span>
-                  {/* Add visual filter tags here */}
-                  <button
-                    onClick={handleClearFilters}
-                    className="text-xs text-indigo-600 hover:text-indigo-700 font-medium"
-                  >
-                    Clear All
-                  </button>
-                </div>
-              )}
             </div>
 
             {/* Products Grid/List */}
             {loading ? (
               <div className="flex justify-center items-center py-20">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#6D28D9]"></div>
               </div>
             ) : error ? (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl">
                 {error}
               </div>
             ) : products.length === 0 ? (
               <div className="text-center py-20">
-                <p className="text-xl text-gray-600 mb-4">No products found</p>
+                <p className="text-xl text-[#6B7280] mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  No products found
+                </p>
                 <button
                   onClick={handleClearFilters}
-                  className="text-indigo-600 hover:text-indigo-700 font-medium"
+                  className="text-[#6D28D9] hover:text-[#5B21B6] font-medium transition-colors"
+                  style={{ fontFamily: 'Inter, sans-serif' }}
                 >
                   Clear all filters
                 </button>
               </div>
             ) : (
               <>
+                {/* Product Grid */}
                 <div className={`grid gap-6 ${
                   viewMode === 'grid'
-                    ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3'
+                    ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4'
                     : 'grid-cols-1'
                 }`}>
                   {products.map((product) => (
@@ -345,11 +368,12 @@ const ProductList = () => {
 
                 {/* Pagination */}
                 {pagination.pages > 1 && (
-                  <div className="flex justify-center items-center gap-2 mt-8">
+                  <div className="flex justify-center items-center gap-2 mt-10">
                     <button
                       onClick={() => handlePageChange(pagination.page - 1)}
                       disabled={pagination.page === 1}
-                      className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-5 py-2.5 bg-white border border-[#E5E7EB] rounded-lg hover:bg-[#F9FAFB] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500 }}
                     >
                       Previous
                     </button>
@@ -359,11 +383,12 @@ const ProductList = () => {
                         <button
                           key={i + 1}
                           onClick={() => handlePageChange(i + 1)}
-                          className={`px-4 py-2 rounded-lg ${
+                          className={`w-10 h-10 rounded-lg transition-all ${
                             pagination.page === i + 1
-                              ? 'bg-indigo-600 text-white'
-                              : 'border border-gray-300 hover:bg-gray-50'
+                              ? 'bg-[#6D28D9] text-white'
+                              : 'bg-white border border-[#E5E7EB] hover:bg-[#F9FAFB] text-[#111827]'
                           }`}
+                          style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500 }}
                         >
                           {i + 1}
                         </button>
@@ -373,7 +398,8 @@ const ProductList = () => {
                     <button
                       onClick={() => handlePageChange(pagination.page + 1)}
                       disabled={pagination.page === pagination.pages}
-                      className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-5 py-2.5 bg-white border border-[#E5E7EB] rounded-lg hover:bg-[#F9FAFB] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500 }}
                     >
                       Next
                     </button>

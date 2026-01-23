@@ -64,6 +64,28 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'BagShop API is running' });
 });
 
+// Data status check
+app.get('/api/status', async (req, res) => {
+  try {
+    const Category = mongoose.model('Category');
+    const Product = mongoose.model('Product');
+    
+    const categoryCount = await Category.countDocuments();
+    const productCount = await Product.countDocuments();
+    
+    res.json({
+      status: 'OK',
+      data: {
+        categories: categoryCount,
+        products: productCount,
+        message: categoryCount === 0 ? 'Please run: node scripts/seedCategories.js && node scripts/addSampleProducts.js' : 'Data is available'
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'ERROR', message: error.message });
+  }
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);

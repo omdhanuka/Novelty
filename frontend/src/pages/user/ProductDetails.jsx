@@ -21,7 +21,7 @@ import { api } from '../../lib/api';
 import ProductCard from '../../components/ProductCard';
 
 const ProductDetails = () => {
-  const { slug } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const [product, setProduct] = useState(null);
@@ -40,20 +40,34 @@ const ProductDetails = () => {
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
 
   const images = product?.images || [];
-  const placeholderImage = 'https://via.placeholder.com/800x800/4F46E5/FFFFFF?text=' + 
-    encodeURIComponent(product?.name?.substring(0, 30) || 'Product Image');
+  const placeholderImage = `https://placehold.co/800x800/4F46E5/FFFFFF/png?text=${encodeURIComponent(product?.name?.substring(0, 20) || 'Product')}`;
 
   const getImageUrl = (index) => {
+    let url = null;
+    
     if (images.length > 0 && images[index]?.url) {
-      return images[index].url;
+      url = images[index].url;
+    } else if (product?.mainImage) {
+      url = product.mainImage;
     }
-    return product?.mainImage || placeholderImage;
+    
+    // If no URL or empty, return placeholder
+    if (!url || url.trim() === '') {
+      return placeholderImage;
+    }
+    
+    // If URL is relative (starts with /uploads), prepend backend URL
+    if (url.startsWith('/uploads')) {
+      url = `http://localhost:5000${url}`;
+    }
+    
+    return url;
   };
 
   useEffect(() => {
     fetchProductDetails();
     window.scrollTo(0, 0);
-  }, [slug]);
+  }, [id]);
 
   useEffect(() => {
     if (product) {
@@ -70,7 +84,7 @@ const ProductDetails = () => {
       setLoading(true);
       setError(null);
 
-      const response = await api.get(`/products/${slug}`);
+      const response = await api.get(`/products/${id}`);
       
       if (response.data.success) {
         setProduct(response.data.data);
