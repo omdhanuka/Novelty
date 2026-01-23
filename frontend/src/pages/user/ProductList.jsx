@@ -72,6 +72,8 @@ const ProductList = () => {
       if (activeFilters.isNewArrival) params.append('isNewArrival', 'true');
 
       const response = await api.get(`/products?${params.toString()}`);
+      console.log('Fetching products with params:', params.toString());
+      console.log('Products response:', response.data);
       
       if (response.data.success) {
         setProducts(response.data.data);
