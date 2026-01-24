@@ -86,6 +86,29 @@ router.post('/', protect, async (req, res) => {
       };
     });
 
+    // Validate stock availability and update quantities
+    const Product = mongoose.model('Product');
+    for (const item of items) {
+      const productId = item.product?._id || item.product;
+      const quantity = item.quantity || 1;
+
+      const product = await Product.findById(productId);
+      
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: `Product not found: ${item.productSnapshot?.name || productId}`,
+        });
+      }
+
+      if (product.stock < quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Insufficient stock for ${product.name}. Available: ${product.stock}, Requested: ${quantity}`,
+        });
+      }
+    }
+
     const shippingPrice = itemsPrice > 500 ? 0 : 50;
     const taxPrice = Math.round(itemsPrice * 0.18);
     const discount = 0; // Will be calculated with coupon logic
@@ -107,6 +130,26 @@ router.post('/', protect, async (req, res) => {
       totalPrice,
       paymentStatus: normalizedPaymentMethod === 'COD' ? 'pending' : 'paid',
     });
+
+    // Deduct stock quantities after successful order creation
+    for (const item of items) {
+      const productId = item.product?._id || item.product;
+      const quantity = item.quantity || 1;
+
+      const product = await Product.findById(productId);
+      product.stock -= quantity;
+
+      // Update stock status based on new quantity
+      if (product.stock === 0) {
+        product.stockStatus = 'out_of_stock';
+      } else if (product.stock <= product.lowStockThreshold) {
+        product.stockStatus = 'low_stock';
+      } else {
+        product.stockStatus = 'in_stock';
+      }
+
+      await product.save();
+    }
 
     res.status(201).json({ success: true, data: order });
   } catch (error) {

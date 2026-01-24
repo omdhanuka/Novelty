@@ -102,7 +102,18 @@ const Checkout = () => {
   const handleAddAddress = async (e) => {
     e.preventDefault();
     try {
-      const response = await api.post('/user/addresses', addressForm);
+      // Map frontend form fields to backend schema
+      const addressData = {
+        name: addressForm.fullName || addressForm.name,
+        phone: addressForm.mobile || addressForm.phone,
+        addressLine: addressForm.addressLine1 || addressForm.addressLine,
+        city: addressForm.city,
+        state: addressForm.state,
+        pincode: addressForm.pincode,
+        isDefault: addressForm.isDefault,
+      };
+
+      const response = await api.post('/user/addresses', addressData);
       if (response.data.success) {
         setAddresses([...addresses, response.data.data]);
         setSelectedAddress(response.data.data._id);
@@ -348,7 +359,7 @@ const Checkout = () => {
                         />
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="font-semibold text-gray-900">{address.fullName}</span>
+                            <span className="font-semibold text-gray-900">{address.name || address.fullName || ''}</span>
                             {address.isDefault && (
                               <span className="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs rounded-full font-medium">
                                 Default
@@ -356,11 +367,11 @@ const Checkout = () => {
                             )}
                           </div>
                           <p className="text-gray-600 text-sm">
-                            {address.addressLine1}, {address.addressLine2 && `${address.addressLine2}, `}
-                            {address.city}, {address.state} - {address.pincode}
+                            {address.addressLine || address.addressLine1 || ''}{address.addressLine2 && `, ${address.addressLine2}`}
+                            {address.city && `, ${address.city}`}{address.state && `, ${address.state}`}{address.pincode && ` - ${address.pincode}`}
                           </p>
                           <p className="text-gray-600 text-sm mt-1">
-                            Mobile: {address.mobile}
+                            Mobile: {address.phone || address.mobile || ''}
                           </p>
                         </div>
                       </div>

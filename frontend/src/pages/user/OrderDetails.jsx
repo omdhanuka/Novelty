@@ -250,16 +250,19 @@ const OrderDetails = () => {
 									<div className="space-y-3 text-sm">
 										<div className="flex items-start gap-2">
 											<MapPin size={16} className="text-gray-400 mt-0.5 shrink-0" />
-											<div>
-												<p className="font-medium text-gray-900">
-													{order.shippingAddress.name || 'N/A'}
-												</p>
-												<p className="text-gray-600 mt-1">
-													{order.shippingAddress.addressLine || order.shippingAddress.address || ''}
-													<br />
-													{order.shippingAddress.city}, {order.shippingAddress.state}
-													<br />
-													{order.shippingAddress.pincode}
+											<div className="text-gray-600 leading-relaxed">
+												{(order.shippingAddress.name || order.shippingAddress.fullName) && (
+													<p className="font-medium text-gray-900 mb-1">
+														{order.shippingAddress.name || order.shippingAddress.fullName}
+													</p>
+												)}
+												{(order.shippingAddress.addressLine || order.shippingAddress.addressLine1 || order.shippingAddress.address) && (
+													<p>{order.shippingAddress.addressLine || order.shippingAddress.addressLine1 || order.shippingAddress.address}</p>
+												)}
+												<p>
+													{order.shippingAddress.city}
+													{order.shippingAddress.state && `, ${order.shippingAddress.state}`}
+													{order.shippingAddress.pincode && ` - ${order.shippingAddress.pincode}`}
 												</p>
 											</div>
 										</div>
