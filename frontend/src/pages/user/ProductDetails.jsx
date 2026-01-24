@@ -87,7 +87,46 @@ const ProductDetails = () => {
       const response = await api.get(`/products/${id}`);
       
       if (response.data.success) {
-        setProduct(response.data.data);
+        // Normalize colors coming from backend (some entries are stored as JSON strings)
+        const p = response.data.data;
+        const normalizeColors = (colors) => {
+          if (!colors) return [];
+          // If stored as a JSON string like '["black"]'
+          if (typeof colors === 'string') {
+            try {
+              const parsed = JSON.parse(colors);
+              if (Array.isArray(parsed)) return parsed;
+            } catch (e) {
+              return [colors];
+            }
+          }
+          // If it's an array, some elements may themselves be JSON-encoded strings
+          if (Array.isArray(colors)) {
+            const result = [];
+            colors.forEach((c) => {
+              if (typeof c === 'string' && c.trim().startsWith('[')) {
+                try {
+                  const parsed = JSON.parse(c);
+                  if (Array.isArray(parsed)) {
+                    result.push(...parsed);
+                    return;
+                  }
+                } catch (e) {
+                  // fallthrough
+                }
+              }
+              result.push(c);
+            });
+            return result;
+          }
+          return [];
+        };
+
+        if (p.attributes) {
+          p.attributes.colors = normalizeColors(p.attributes.colors);
+        }
+
+        setProduct(p);
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Product not found');
