@@ -81,15 +81,35 @@ const MyOrders = () => {
     cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-800', icon: XCircle },
   };
 
-  const filteredOrders = orders.filter((order) => {
-    const matchesSearch = order.id.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+  // Normalize orders from backend or legacy sample format
+  const normalizeOrder = (order) => {
+    // backend: orderNumber, createdAt, orderStatus, totalPrice, items
+    // legacy/sample: id, date, status, total, products
+    const id = order._id || order.id || order.orderNumber || '';
+    const orderNumber = order.orderNumber || order.id || '';
+    const date = order.createdAt || order.date || '';
+    const status = order.orderStatus || order.status || '';
+    const total = order.totalPrice || order.total || 0;
+    const products = order.items
+      ? order.items.map((it) => ({ name: it.name, image: it.image, qty: it.quantity, price: it.price }))
+      : order.products || [];
+
+    return { ...order, id, orderNumber, date, status, total, products };
+  };
+
+  const normalizedOrders = orders.map(normalizeOrder);
+
+  const filteredOrders = normalizedOrders.filter((order) => {
+    const idStr = (order.orderNumber || '').toString();
+    const matchesSearch = idStr.toLowerCase().includes((searchQuery || '').toLowerCase());
+    const matchesStatus = statusFilter === 'all' || (order.status || '').toString() === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   const getStatusBadge = (status) => {
-    const config = statusConfig[status];
-    const Icon = config.icon;
+    const key = (status || '').toString().toLowerCase();
+    const config = statusConfig[key] || { label: 'Unknown', color: 'bg-gray-100 text-gray-800', icon: Package };
+    const Icon = config.icon || Package;
     return (
       <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${config.color}`}>
         <Icon size={14} />
@@ -187,7 +207,7 @@ const MyOrders = () => {
         ) : (
           filteredOrders.map((order, index) => (
             <motion.div
-              key={order.id}
+              key={order.id || order.orderNumber || index}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 + index * 0.1 }}
@@ -201,7 +221,7 @@ const MyOrders = () => {
                       <Package size={24} className="text-indigo-600" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{order.id}</h3>
+                      <h3 className="text-lg font-semibold text-gray-900">{order.orderNumber}</h3>
                       <p className="text-sm text-gray-500">
                         Placed on {new Date(order.date).toLocaleDateString('en-IN', {
                           day: 'numeric',
@@ -213,7 +233,7 @@ const MyOrders = () => {
                   </div>
                   <div className="flex flex-col md:items-end gap-2">
                     {getStatusBadge(order.status)}
-                    <p className="text-lg font-bold text-gray-900">₹{order.total.toLocaleString()}</p>
+                    <p className="text-lg font-bold text-gray-900">₹{(order.total || 0).toLocaleString()}</p>
                   </div>
                 </div>
               </div>
@@ -240,14 +260,21 @@ const MyOrders = () => {
 
               {/* Order Actions */}
               <div className="p-6 border-t border-gray-100">
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Link
-                    to={`/account/orders/${order.id}`}
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-                  >
-                    <Eye size={18} />
-                    View Details
-                  </Link>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                  {order.id ? (
+                    <Link
+                      to={`/account/orders/${order.id}`}
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                    >
+                      <Eye size={18} />
+                      View Details
+                    </Link>
+                  ) : (
+                    <div className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-500 rounded-lg">
+                      <Eye size={18} />
+                      View Details
+                    </div>
+                  )}
                   {order.status === 'delivered' && (
                     <>
                       <button className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
@@ -286,24 +313,24 @@ const MyOrders = () => {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-gray-900">{orders.length}</p>
+              <p className="text-2xl font-bold text-gray-900">{normalizedOrders.length}</p>
               <p className="text-sm text-gray-500">Total Orders</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold text-green-600">
-                {orders.filter((o) => o.status === 'delivered').length}
+                {normalizedOrders.filter((o) => (o.status || '').toString() === 'delivered').length}
               </p>
               <p className="text-sm text-gray-500">Delivered</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold text-blue-600">
-                {orders.filter((o) => o.status === 'in-transit').length}
+                {normalizedOrders.filter((o) => (o.status || '').toString() === 'in-transit').length}
               </p>
               <p className="text-sm text-gray-500">In Transit</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold text-indigo-600">
-                ₹{orders.reduce((sum, o) => sum + o.total, 0).toLocaleString()}
+                ₹{normalizedOrders.reduce((sum, o) => sum + (o.total || 0), 0).toLocaleString()}
               </p>
               <p className="text-sm text-gray-500">Total Spent</p>
             </div>

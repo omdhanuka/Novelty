@@ -193,9 +193,32 @@ const ProductDetails = () => {
     }
   };
 
-  const handleBuyNow = async () => {
-    await handleAddToCart();
-    navigate('/cart');
+  const handleBuyNow = () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    // Navigate to checkout with buy now state
+    navigate('/checkout', {
+      state: {
+        buyNow: true,
+        product: {
+          product: product,
+          productSnapshot: {
+            name: product.name,
+            image: product.mainImage || product.images?.[0]?.url || '',
+            price: product.price?.selling || 0,
+            originalPrice: product.price?.mrp || product.price?.selling || 0,
+            discount: product.price?.discount || 0,
+          },
+          quantity,
+          selectedColor,
+          selectedSize: '',
+        },
+      },
+    });
   };
 
   const handleWishlist = async () => {

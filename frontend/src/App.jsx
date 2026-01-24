@@ -20,7 +20,9 @@ import MyOrders from './pages/user/MyOrders';
 import OrderDetails from './pages/user/OrderDetails';
 import Wishlist from './pages/user/Wishlist';
 import Cart from './pages/user/Cart';
+import Checkout from './pages/user/Checkout';
 import ChangePassword from './pages/user/ChangePassword';
+import UserLayout from './components/user/UserLayout';
 
 // Product pages
 import ProductList from './pages/user/ProductList';
@@ -89,6 +91,24 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+
+              {/* Account area with nested user layout (keeps legacy /account/* links working) */}
+              <Route
+                path="/account"
+                element={
+                  <ProtectedRoute>
+                    <UserLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<UserProfilePage />} />
+                <Route path="orders" element={<MyOrders />} />
+                <Route path="orders/:orderId" element={<OrderDetails />} />
+                <Route path="addresses" element={<AddressManagement />} />
+                <Route path="wishlist" element={<Wishlist />} />
+                <Route path="profile" element={<UserProfilePage />} />
+                <Route path="change-password" element={<ChangePassword />} />
+              </Route>
               <Route
                 path="/wishlist"
                 element={
@@ -102,6 +122,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Cart />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/checkout"
+                element={
+                  <ProtectedRoute>
+                    <Checkout />
                   </ProtectedRoute>
                 }
               />
