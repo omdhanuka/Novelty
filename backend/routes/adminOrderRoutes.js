@@ -41,19 +41,21 @@ router.get('/', async (req, res) => {
       if (endDate) query.createdAt.$lte = new Date(endDate);
     }
 
-    // Search by order number, customer name, email
+    // Enhanced search by order number, customer name, email, phone
     if (search) {
       const searchRegex = new RegExp(search, 'i');
       const users = await User.find({
         $or: [
           { name: searchRegex },
           { email: searchRegex },
+          { phone: searchRegex },
         ],
       }).select('_id');
       
       query.$or = [
         { orderNumber: searchRegex },
         { user: { $in: users.map(u => u._id) } },
+        { 'shippingAddress.phone': searchRegex },
       ];
     }
 
@@ -365,6 +367,189 @@ router.patch('/:id/cancel', auditLog('cancel', 'Order'), async (req, res) => {
     });
   } catch (error) {
     res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+// Bulk update order status
+router.patch('/bulk/status', auditLog('bulk_update_status', 'Order'), async (req, res) => {
+  try {
+    const { orderIds, status, note } = req.body;
+
+    if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Order IDs array is required',
+      });
+    }
+
+    const updateResult = await Order.updateMany(
+      { _id: { $in: orderIds } },
+      { 
+        $set: { orderStatus: status },
+        $push: {
+          statusHistory: {
+            status,
+            updatedBy: req.user._id,
+            updatedAt: new Date(),
+          },
+          ...(note && {
+            notes: {
+              message: `Bulk status update: ${note}`,
+              createdBy: req.user._id,
+            },
+          }),
+        },
+      }
+    );
+
+    res.json({
+      success: true,
+      data: updateResult,
+      message: `${updateResult.modifiedCount} orders updated successfully`,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+// Get order statistics
+router.get('/stats/overview', async (req, res) => {
+  try {
+    const stats = await Order.aggregate([
+      {
+        $facet: {
+          byStatus: [
+            {
+              $group: {
+                _id: '$orderStatus',
+                count: { $sum: 1 },
+                totalAmount: { $sum: '$totalPrice' },
+              },
+            },
+          ],
+          byPaymentStatus: [
+            {
+              $group: {
+                _id: '$paymentStatus',
+                count: { $sum: 1 },
+                totalAmount: { $sum: '$totalPrice' },
+              },
+            },
+          ],
+          byPaymentMethod: [
+            {
+              $group: {
+                _id: '$paymentMethod',
+                count: { $sum: 1 },
+                totalAmount: { $sum: '$totalPrice' },
+              },
+            },
+          ],
+          total: [
+            {
+              $group: {
+                _id: null,
+                count: { $sum: 1 },
+                totalRevenue: { $sum: '$totalPrice' },
+              },
+            },
+          ],
+        },
+      },
+    ]);
+
+    res.json({
+      success: true,
+      data: stats[0],
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+// Export orders
+router.get('/export', async (req, res) => {
+  try {
+    const { format = 'csv', status, paymentStatus, search } = req.query;
+
+    // Build query
+    const query = {};
+    if (status) query.orderStatus = status;
+    if (paymentStatus) query.paymentStatus = paymentStatus;
+    if (search) {
+      const searchRegex = new RegExp(search, 'i');
+      const users = await User.find({
+        $or: [
+          { name: searchRegex },
+          { email: searchRegex },
+          { phone: searchRegex },
+        ],
+      }).select('_id');
+      
+      query.$or = [
+        { user: { $in: users.map(u => u._id) } },
+        { orderNumber: searchRegex },
+        { 'shippingAddress.phone': searchRegex },
+      ];
+    }
+
+    // Fetch orders
+    const orders = await Order.find(query)
+      .populate('user', 'name email phone')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    if (format === 'csv') {
+      // Generate CSV
+      const csvRows = [];
+      csvRows.push([
+        'Order Number',
+        'Customer Name',
+        'Customer Email',
+        'Phone',
+        'Order Status',
+        'Payment Status',
+        'Payment Method',
+        'Total Amount',
+        'Order Date',
+      ].join(','));
+
+      orders.forEach(order => {
+        csvRows.push([
+          order.orderNumber || order._id,
+          order.user?.name || 'N/A',
+          order.user?.email || 'N/A',
+          order.user?.phone || order.shippingAddress?.phone || 'N/A',
+          order.orderStatus,
+          order.paymentStatus || 'pending',
+          order.paymentMethod,
+          order.totalPrice,
+          new Date(order.createdAt).toLocaleDateString(),
+        ].join(','));
+      });
+
+      const csv = csvRows.join('\n');
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename=orders.csv');
+      return res.send(csv);
+    } else {
+      // For Excel format, send JSON (frontend can convert)
+      res.json({
+        success: true,
+        data: orders,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
       success: false,
       message: error.message,
     });

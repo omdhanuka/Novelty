@@ -26,6 +26,8 @@ const orderSchema = new mongoose.Schema(
         required: true,
         min: 1,
       },
+      selectedColor: String,
+      selectedSize: String,
     }],
     shippingAddress: {
       fullName: {

@@ -83,6 +83,8 @@ router.post('/', protect, async (req, res) => {
         image: item.productSnapshot?.image || item.product?.mainImage,
         price: price,
         quantity: quantity,
+        selectedColor: item.selectedColor || '',
+        selectedSize: item.selectedSize || '',
       };
     });
 

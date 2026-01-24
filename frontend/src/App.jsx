@@ -37,6 +37,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProducts from './pages/admin/AdminProducts';
 import AdminAddProduct from './pages/admin/AdminAddProduct';
 import AdminOrders from './pages/admin/AdminOrders';
+import AdminOrderDetails from './pages/admin/AdminOrderDetails';
 import AdminCategories from './pages/admin/AdminCategories';
 import AdminCoupons from './pages/admin/AdminCoupons';
 import AdminCustomers from './pages/admin/AdminCustomers';
@@ -164,6 +165,7 @@ function App() {
               <Route path="products" element={<AdminProducts />} />
               <Route path="products/add" element={<AdminAddProduct />} />
               <Route path="orders" element={<AdminOrders />} />
+              <Route path="orders/:orderId" element={<AdminOrderDetails />} />
               <Route path="categories" element={<AdminCategories />} />
               <Route path="coupons" element={<AdminCoupons />} />
               <Route path="customers" element={<AdminCustomers />} />

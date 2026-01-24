@@ -194,14 +194,17 @@ router.get('/dashboard/inventory-report', async (req, res) => {
       Product.countDocuments(),
       Product.countDocuments({ status: 'active' }),
       Product.countDocuments({ stock: 0 }),
-      Product.countDocuments({ $expr: { $lte: ['$stock', '$lowStockThreshold'] }, stock: { $gt: 0 } }),
+      Product.countDocuments({ 
+        stock: { $gt: 0, $lte: 10 },
+        status: 'active'
+      }),
       Product.countDocuments({ status: 'draft' }),
       Product.aggregate([
         { $match: { status: 'active' } },
         {
           $group: {
             _id: null,
-            value: { $sum: { $multiply: ['$price', '$stock'] } },
+            value: { $sum: { $multiply: ['$sellingPrice', '$stock'] } },
           },
         },
       ]),
@@ -219,6 +222,7 @@ router.get('/dashboard/inventory-report', async (req, res) => {
       },
     });
   } catch (error) {
+    console.error('Inventory report error:', error);
     res.status(500).json({
       success: false,
       message: error.message,
