@@ -18,11 +18,13 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../../lib/api';
+import { useCart } from '../../context/CartContext';
 import ProductCard from '../../components/ProductCard';
 
 const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { addToCart } = useCart();
 
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
@@ -38,6 +40,9 @@ const ProductDetails = () => {
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   const images = product?.images || [];
   const placeholderImage = `https://placehold.co/800x800/4F46E5/FFFFFF/png?text=${encodeURIComponent(product?.name?.substring(0, 20) || 'Product')}`;
@@ -170,16 +175,21 @@ const ProductDetails = () => {
         return;
       }
 
-      await api.post('/cart/add', {
-        productId: product._id,
-        quantity,
-        selectedColor,
-      });
+      setAddingToCart(true);
+      const result = await addToCart(product._id, quantity, selectedColor);
 
-      alert('Product added to cart!');
+      if (result.success) {
+        setToastMessage('✅ Product added to cart!');
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
+      } else {
+        alert(result.message || 'Failed to add to cart');
+      }
     } catch (err) {
       console.error('Error adding to cart:', err);
       alert('Failed to add product to cart');
+    } finally {
+      setAddingToCart(false);
     }
   };
 
@@ -481,15 +491,24 @@ const ProductDetails = () => {
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={handleAddToCart}
-                  disabled={isOutOfStock}
+                  disabled={isOutOfStock || addingToCart}
                   className="flex items-center justify-center gap-2 px-6 py-4 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
-                  <ShoppingCart className="w-5 h-5" />
-                  Add to Cart
+                  {addingToCart ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      Adding...
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart className="w-5 h-5" />
+                      Add to Cart
+                    </>
+                  )}
                 </button>
                 <button
                   onClick={handleBuyNow}
-                  disabled={isOutOfStock}
+                  disabled={isOutOfStock || addingToCart}
                   className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
                   Buy Now
@@ -708,6 +727,29 @@ const ProductDetails = () => {
           </div>
         )}
       </div>
+
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {showToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-8 right-8 bg-green-600 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3 z-50"
+          >
+            <Check className="w-6 h-6" />
+            <div>
+              <p className="font-semibold">{toastMessage}</p>
+              <button
+                onClick={() => navigate('/cart')}
+                className="text-sm underline hover:text-green-100 mt-1"
+              >
+                View Cart
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

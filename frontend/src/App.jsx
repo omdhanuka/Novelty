@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage';
 
 // User Auth imports
 import { AuthProvider } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Register from './pages/Register';
 import Login from './pages/Login';
@@ -18,6 +19,7 @@ import AddressManagement from './pages/user/AddressManagement';
 import MyOrders from './pages/user/MyOrders';
 import OrderDetails from './pages/user/OrderDetails';
 import Wishlist from './pages/user/Wishlist';
+import Cart from './pages/user/Cart';
 import ChangePassword from './pages/user/ChangePassword';
 
 // Product pages
@@ -46,8 +48,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Router>
         <AuthProvider>
-          <AdminProvider>
-            <Routes>
+          <CartProvider>
+            <AdminProvider>
+              <Routes>
               {/* Public routes */}
               <Route path="/" element={<HomePage />} />
 
@@ -95,6 +98,14 @@ function App() {
                 }
               />
               <Route
+                path="/cart"
+                element={
+                  <ProtectedRoute>
+                    <Cart />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/addresses"
                 element={
                   <ProtectedRoute>
@@ -133,8 +144,9 @@ function App() {
               <Route path="content" element={<AdminContent />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>
-          </Routes>
-          </AdminProvider>
+              </Routes>
+            </AdminProvider>
+          </CartProvider>
         </AuthProvider>
       </Router>
     </QueryClientProvider>

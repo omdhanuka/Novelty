@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useCartStore, useWishlistStore, useUIStore } from '../store';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -28,8 +29,9 @@ const Header = () => {
   const { items: wishlistItems } = useWishlistStore();
   const { isMobileMenuOpen, toggleMobileMenu } = useUIStore();
   const { user, isAuthenticated, logout } = useAuth();
+  const { cartCount } = useCart();
   
-  const cartItemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
+  const cartItemCount = cartCount || 0;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -271,17 +273,18 @@ const Header = () => {
               </Link>
 
               {/* Cart */}
-              <button
-                onClick={toggleCart}
-                className="relative p-2 hover:bg-white/80 rounded-lg transition-all duration-200"
-              >
-                <ShoppingCart size={20} className="text-[#111827]" />
-                {cartItemCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-[#6D28D9] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-semibold">
-                    {cartItemCount}
-                  </span>
-                )}
-              </button>
+              <Link to="/cart">
+                <button
+                  className="relative p-2 hover:bg-white/80 rounded-lg transition-all duration-200"
+                >
+                  <ShoppingCart size={20} className="text-[#111827]" />
+                  {cartItemCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-[#6D28D9] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-semibold">
+                      {cartItemCount}
+                    </span>
+                  )}
+                </button>
+              </Link>
 
               {/* Mobile Menu */}
               <button
