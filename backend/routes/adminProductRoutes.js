@@ -310,18 +310,20 @@ router.post('/', upload.any(), auditLog('create', 'Product'), async (req, res) =
 // Update product
 router.put('/:id', auditLog('update', 'Product'), async (req, res) => {
   try {
-    const product = await Product.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
-
+    const product = await Product.findById(req.params.id);
+    
     if (!product) {
       return res.status(404).json({
         success: false,
         message: 'Product not found',
       });
     }
+
+    // Update product fields
+    Object.assign(product, req.body);
+    
+    // Save will trigger pre-save hook to update stockStatus
+    await product.save();
 
     res.json({
       success: true,
@@ -386,13 +388,7 @@ router.patch('/:id/stock', auditLog('update_stock', 'Product'), async (req, res)
 
     product.stock = newStock;
     
-    // Update status based on stock
-    if (newStock === 0) {
-      product.status = 'out_of_stock';
-    } else if (product.status === 'out_of_stock') {
-      product.status = 'active';
-    }
-
+    // Stock status will be auto-updated by the pre-save hook
     await product.save();
 
     // Log inventory change

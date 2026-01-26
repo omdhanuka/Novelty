@@ -143,28 +143,75 @@ const OrderDetails = () => {
 								<h2 className="text-xl font-bold text-gray-900 mb-6">Order Items</h2>
 								<div className="space-y-4">
 									{(order.items || []).map((item, index) => {
+										// Extract product details with comprehensive fallbacks
 										const productName = item.name || item.product?.name || 'Product';
-										const productImage = item.image || (item.product?.images && item.product.images[0]) || '';
+										
+										// Get image URL - check all possible sources
+										const placeholderSvg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23f3f4f6' width='200' height='200'/%3E%3Cg transform='translate(100 100)'%3E%3Crect x='-30' y='-45' width='60' height='60' fill='%23d1d5db' rx='3'/%3E%3Ccircle cx='0' cy='-25' r='8' fill='%239ca3af'/%3E%3Cpath d='M -18 -12 L -8 -22 L 3 -12 L 18 -25 L 18 0 L -18 0 Z' fill='%239ca3af'/%3E%3C/g%3E%3Ctext fill='%236b7280' font-family='Arial' font-size='12' x='100' y='140' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E";
+										let imageUrl = placeholderSvg;
+										
+										// Check item.image first
+										if (item.image && item.image.trim() !== '') {
+											imageUrl = item.image;
+										} 
+										// Then check product.mainImage
+										else if (item.product?.mainImage && item.product.mainImage.trim() !== '') {
+											imageUrl = item.product.mainImage;
+										} 
+										// Finally check product.images array
+										else if (item.product?.images && Array.isArray(item.product.images) && item.product.images.length > 0) {
+											const firstImage = item.product.images[0];
+											// Handle both object format {url: '...'} and string format
+											imageUrl = typeof firstImage === 'object' ? (firstImage?.url || placeholderSvg) : firstImage;
+										}
+										
+										// Convert relative URL to absolute URL
+										if (imageUrl && !imageUrl.startsWith('data:image') && !imageUrl.startsWith('http')) {
+											// Remove leading slash if present, then add backend URL
+											const cleanPath = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+											imageUrl = `http://localhost:5000${cleanPath}`;
+										}
+										
+										console.log('Final image URL:', imageUrl);
+										
 										const quantity = item.quantity || 1;
 										const price = item.price || 0;
+										const selectedColor = item.selectedColor || null;
+										const selectedSize = item.selectedSize || null;
 										
 										return (
 											<div 
 												key={item._id || index} 
 												className="flex gap-4 p-4 border border-gray-100 rounded-lg"
 											>
-												{productImage && (
+												<div className="w-20 h-20 shrink-0">
 													<img 
-														src={productImage} 
+														src={imageUrl} 
 														alt={productName} 
-														className="w-20 h-20 object-cover rounded-lg border border-gray-200" 
+														className="w-full h-full object-cover rounded-lg border border-gray-200" 
+														onError={(e) => {
+															console.log('Image failed to load:', e.target.src);
+															if (!e.target.src.startsWith('data:image')) {
+																e.target.src = placeholderSvg;
+															}
+														}}
 													/>
-												)}
-												<div className="flex-1">
-													<h3 className="font-semibold text-gray-900 mb-1">{productName}</h3>
+												</div>
+												<div className="flex-1 min-w-0">
+													<h3 className="font-semibold text-gray-900 mb-1 truncate">{productName}</h3>
+													{selectedColor && (
+														<p className="text-sm text-gray-600">
+															Color: <span className="font-medium">{selectedColor}</span>
+														</p>
+													)}
+													{selectedSize && (
+														<p className="text-sm text-gray-600">
+															Size: <span className="font-medium">{selectedSize}</span>
+														</p>
+													)}
 													<p className="text-sm text-gray-600">Quantity: {quantity}</p>
 												</div>
-												<div className="text-right">
+												<div className="text-right shrink-0">
 													<p className="text-lg font-bold text-gray-900">
 														₹{(price || 0).toLocaleString()}
 													</p>

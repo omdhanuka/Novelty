@@ -370,38 +370,68 @@ const AdminOrderDetails = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Items</h3>
                   <div className="space-y-4">
-                    {(order.items || []).map((item, idx) => (
-                      <div key={idx} className="flex gap-4 p-4 bg-gray-50 rounded-lg">
-                        <img
-                          src={item.image || item.product?.images?.[0] || item.product?.mainImage || '/placeholder.png'}
-                          alt={item.name}
-                          className="w-20 h-20 object-cover rounded-lg"
-                          onError={(e) => {
-                            e.target.src = '/placeholder.png';
-                          }}
-                        />
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900">{item.name}</h4>
-                          {item.selectedColor && (
-                            <p className="text-sm text-gray-500">
-                              Color: <span className="font-medium">{item.selectedColor}</span>
+                    {(order.items || []).map((item, idx) => {
+                      // Get image URL with comprehensive fallbacks
+                      const placeholderSvg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23f3f4f6' width='200' height='200'/%3E%3Cg transform='translate(100 100)'%3E%3Crect x='-30' y='-45' width='60' height='60' fill='%23d1d5db' rx='3'/%3E%3Ccircle cx='0' cy='-25' r='8' fill='%239ca3af'/%3E%3Cpath d='M -18 -12 L -8 -22 L 3 -12 L 18 -25 L 18 0 L -18 0 Z' fill='%239ca3af'/%3E%3C/g%3E%3Ctext fill='%236b7280' font-family='Arial' font-size='12' x='100' y='140' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E";
+                      let imageUrl = placeholderSvg;
+                      
+                      if (item.image && item.image.trim() !== '') {
+                        imageUrl = item.image;
+                      } else if (item.product?.mainImage && item.product.mainImage.trim() !== '') {
+                        imageUrl = item.product.mainImage;
+                      } else if (item.product?.images && Array.isArray(item.product.images) && item.product.images.length > 0) {
+                        const firstImage = item.product.images[0];
+                        imageUrl = typeof firstImage === 'object' ? (firstImage?.url || placeholderSvg) : firstImage;
+                      }
+                      
+                      // Convert relative URL to absolute URL
+                      if (imageUrl && !imageUrl.startsWith('data:image') && !imageUrl.startsWith('http')) {
+                        const cleanPath = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+                        imageUrl = `http://localhost:5000${cleanPath}`;
+                      }
+                      
+                      const selectedColor = item.selectedColor || null;
+                      const selectedSize = item.selectedSize || null;
+                      
+                      return (
+                        <div key={idx} className="flex gap-4 p-4 bg-gray-50 rounded-lg">
+                          <div className="w-20 h-20 shrink-0">
+                            <img
+                              src={imageUrl}
+                              alt={item.name}
+                              className="w-full h-full object-cover rounded-lg"
+                              onError={(e) => {
+                                console.log('Image load error:', e.target.src);
+                                const placeholderSvg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23f3f4f6' width='200' height='200'/%3E%3Cg transform='translate(100 100)'%3E%3Crect x='-30' y='-45' width='60' height='60' fill='%23d1d5db' rx='3'/%3E%3Ccircle cx='0' cy='-25' r='8' fill='%239ca3af'/%3E%3Cpath d='M -18 -12 L -8 -22 L 3 -12 L 18 -25 L 18 0 L -18 0 Z' fill='%239ca3af'/%3E%3C/g%3E%3Ctext fill='%236b7280' font-family='Arial' font-size='12' x='100' y='140' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E";
+                                if (!e.target.src.startsWith('data:image')) {
+                                  e.target.src = placeholderSvg;
+                                }
+                              }}
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-gray-900 truncate">{item.name}</h4>
+                            {selectedColor && (
+                              <p className="text-sm text-gray-500">
+                                Color: <span className="font-medium">{selectedColor}</span>
+                              </p>
+                            )}
+                            {selectedSize && (
+                              <p className="text-sm text-gray-500">
+                                Size: <span className="font-medium">{selectedSize}</span>
+                              </p>
+                            )}
+                            <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
+                            <p className="text-sm text-gray-500">Price: ₹{item.price}</p>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p className="font-semibold text-gray-900">
+                              ₹{(item.price * item.quantity).toLocaleString()}
                             </p>
-                          )}
-                          {item.selectedSize && (
-                            <p className="text-sm text-gray-500">
-                              Size: <span className="font-medium">{item.selectedSize}</span>
-                            </p>
-                          )}
-                          <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
-                          <p className="text-sm text-gray-500">Price: ₹{item.price}</p>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-gray-900">
-                            ₹{(item.price * item.quantity).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </div>

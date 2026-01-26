@@ -90,8 +90,36 @@ const MyOrders = () => {
     const date = order.createdAt || order.date || '';
     const status = order.orderStatus || order.status || '';
     const total = order.totalPrice || order.total || 0;
+    
+    // Process items with comprehensive image fallback
+    const placeholderSvg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23f3f4f6' width='200' height='200'/%3E%3Cg transform='translate(100 100)'%3E%3Crect x='-30' y='-45' width='60' height='60' fill='%23d1d5db' rx='3'/%3E%3Ccircle cx='0' cy='-25' r='8' fill='%239ca3af'/%3E%3Cpath d='M -18 -12 L -8 -22 L 3 -12 L 18 -25 L 18 0 L -18 0 Z' fill='%239ca3af'/%3E%3C/g%3E%3Ctext fill='%236b7280' font-family='Arial' font-size='12' x='100' y='140' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E";
     const products = order.items
-      ? order.items.map((it) => ({ name: it.name, image: it.image, qty: it.quantity, price: it.price }))
+      ? order.items.map((it) => {
+          // Get image URL with multiple fallbacks
+          let imageUrl = placeholderSvg;
+          
+          if (it.image && it.image.trim() !== '') {
+            imageUrl = it.image;
+          } else if (it.product?.mainImage && it.product.mainImage.trim() !== '') {
+            imageUrl = it.product.mainImage;
+          } else if (it.product?.images && Array.isArray(it.product.images) && it.product.images.length > 0) {
+            const firstImage = it.product.images[0];
+            imageUrl = typeof firstImage === 'object' ? (firstImage?.url || placeholderSvg) : firstImage;
+          }
+          
+          // Convert relative URL to absolute URL
+          if (imageUrl && !imageUrl.startsWith('data:image') && !imageUrl.startsWith('http')) {
+            const cleanPath = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+            imageUrl = `http://localhost:5000${cleanPath}`;
+          }
+          
+          return { 
+            name: it.name || it.product?.name || 'Product', 
+            image: imageUrl,
+            qty: it.quantity || 1, 
+            price: it.price || 0 
+          };
+        })
       : order.products || [];
 
     return { ...order, id, orderNumber, date, status, total, products };
@@ -243,16 +271,25 @@ const MyOrders = () => {
                 <div className="space-y-3">
                   {order.products.map((product, idx) => (
                     <div key={idx} className="flex items-center gap-4">
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-16 h-16 object-cover rounded-lg border border-gray-200"
-                      />
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900">{product.name}</p>
+                      <div className="w-16 h-16 shrink-0">
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="w-full h-full object-cover rounded-lg border border-gray-200"
+                          onError={(e) => {
+                            console.log('Image load error:', e.target.src);
+                            const placeholderSvg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23f3f4f6' width='200' height='200'/%3E%3Cg transform='translate(100 100)'%3E%3Crect x='-30' y='-45' width='60' height='60' fill='%23d1d5db' rx='3'/%3E%3Ccircle cx='0' cy='-25' r='8' fill='%239ca3af'/%3E%3Cpath d='M -18 -12 L -8 -22 L 3 -12 L 18 -25 L 18 0 L -18 0 Z' fill='%239ca3af'/%3E%3C/g%3E%3Ctext fill='%236b7280' font-family='Arial' font-size='12' x='100' y='140' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E";
+                            if (!e.target.src.startsWith('data:image')) {
+                              e.target.src = placeholderSvg;
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 truncate">{product.name}</p>
                         <p className="text-sm text-gray-500">Qty: {product.qty}</p>
                       </div>
-                      <p className="font-semibold text-gray-900">₹{product.price.toLocaleString()}</p>
+                      <p className="font-semibold text-gray-900 shrink-0">₹{product.price.toLocaleString()}</p>
                     </div>
                   ))}
                 </div>

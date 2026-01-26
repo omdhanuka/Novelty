@@ -140,16 +140,7 @@ router.post('/', protect, async (req, res) => {
 
       const product = await Product.findById(productId);
       product.stock -= quantity;
-
-      // Update stock status based on new quantity
-      if (product.stock === 0) {
-        product.stockStatus = 'out_of_stock';
-      } else if (product.stock <= product.lowStockThreshold) {
-        product.stockStatus = 'low_stock';
-      } else {
-        product.stockStatus = 'in_stock';
-      }
-
+      // Stock status will be auto-updated by the pre-save hook
       await product.save();
     }
 

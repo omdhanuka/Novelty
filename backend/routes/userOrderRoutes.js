@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import Order from '../models/Order.js';
 import { protect } from './authRoutes.js';
 
@@ -10,8 +11,8 @@ const router = express.Router();
 router.get('/orders', protect, async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user._id })
-      .sort({ createdAt: -1 })
-      .populate('items.product', 'name price images');
+      .populate('items.product', 'name images mainImage')
+      .sort({ createdAt: -1 });
     
     res.json({
       success: true,
@@ -33,7 +34,7 @@ router.get('/orders/:id', protect, async (req, res) => {
     const order = await Order.findOne({
       _id: req.params.id,
       user: req.user._id,
-    }).populate('items.product', 'name price images');
+    }).populate('items.product', 'name images mainImage');
 
     if (!order) {
       return res.status(404).json({
@@ -80,6 +81,17 @@ router.post('/orders/:id/cancel', protect, async (req, res) => {
 
     order.orderStatus = 'cancelled';
     await order.save();
+
+    // Restore product stock and update stock status
+    const Product = mongoose.model('Product');
+    for (const item of order.items) {
+      const product = await Product.findById(item.product);
+      if (product) {
+        product.stock += item.quantity;
+        // Stock status will be auto-updated by the pre-save hook
+        await product.save();
+      }
+    }
 
     res.json({
       success: true,

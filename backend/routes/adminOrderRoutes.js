@@ -65,6 +65,7 @@ router.get('/', async (req, res) => {
     const [orders, total] = await Promise.all([
       Order.find(query)
         .populate('user', 'name email phone')
+        .populate('items.product', 'name images mainImage')
         .sort(sort)
         .skip(skip)
         .limit(parseInt(limit)),
@@ -94,7 +95,7 @@ router.get('/:id', async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
       .populate('user', 'name email phone')
-      .populate('items.product')
+      .populate('items.product', 'name images mainImage')
       .populate('notes.createdBy', 'name')
       .populate('statusHistory.updatedBy', 'name');
 
@@ -305,11 +306,14 @@ router.post('/:id/refund', authorize('admin'), auditLog('refund', 'Order'), asyn
 
     await Promise.all([payment.save(), order.save()]);
 
-    // Restore product stock
+    // Restore product stock and update stock status
     for (const item of order.items) {
-      await Product.findByIdAndUpdate(item.product, {
-        $inc: { stock: item.quantity },
-      });
+      const product = await Product.findById(item.product);
+      if (product) {
+        product.stock += item.quantity;
+        // Stock status will be auto-updated by the pre-save hook
+        await product.save();
+      }
     }
 
     res.json({
@@ -353,11 +357,14 @@ router.patch('/:id/cancel', auditLog('cancel', 'Order'), async (req, res) => {
 
     await order.save();
 
-    // Restore product stock
+    // Restore product stock and update stock status
     for (const item of order.items) {
-      await Product.findByIdAndUpdate(item.product, {
-        $inc: { stock: item.quantity },
-      });
+      const product = await Product.findById(item.product);
+      if (product) {
+        product.stock += item.quantity;
+        // Stock status will be auto-updated by the pre-save hook
+        await product.save();
+      }
     }
 
     res.json({
