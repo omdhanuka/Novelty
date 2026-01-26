@@ -66,7 +66,7 @@ const AdminOrders = () => {
   const bulkUpdateMutation = useMutation({
     mutationFn: async ({ orderIds, status }) => {
       const token = localStorage.getItem('adminToken');
-      await api.post('/admin/orders/bulk/status', { orderIds, status }, {
+      await api.patch('/admin/orders/bulk/status', { orderIds, status }, {
         headers: { Authorization: `Bearer ${token}` },
       });
     },
@@ -320,14 +320,13 @@ const AdminOrders = () => {
             className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           >
             <option value="">All Status</option>
-            <option value="pending">Pending</option>
+            <option value="placed">Placed</option>
             <option value="confirmed">Confirmed</option>
-            <option value="processing">Processing</option>
             <option value="packed">Packed</option>
             <option value="shipped">Shipped</option>
             <option value="delivered">Delivered</option>
             <option value="cancelled">Cancelled</option>
-            <option value="returned">Returned</option>
+            <option value="refunded">Refunded</option>
           </select>
 
           {/* Payment Status Filter */}

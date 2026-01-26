@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { 
   Search, Filter, Download, Eye, Edit, X, Check, Package, 
   Truck, Ban, RotateCcw, FileText, Printer, ChevronLeft, ChevronRight,
-  AlertCircle, DollarSign, CreditCard, Smartphone
+  AlertCircle, DollarSign, CreditCard, Smartphone, ZoomIn
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { api } from '../../lib/api';
@@ -15,6 +15,7 @@ const AdminOrderDetails = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [newNote, setNewNote] = useState('');
   const [trackingInfo, setTrackingInfo] = useState({ trackingId: '', courierName: '' });
+  const [selectedImage, setSelectedImage] = useState(null);
   
   // Get order ID from URL
   const orderId = window.location.pathname.split('/').pop();
@@ -164,7 +165,8 @@ const AdminOrderDetails = () => {
 
   const getStatusBadge = (status) => {
     const badges = {
-      pending: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Pending' },
+      placed: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Placed' },
+      pending: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Placed' },
       confirmed: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Confirmed' },
       processing: { bg: 'bg-indigo-100', text: 'text-indigo-800', label: 'Processing' },
       packed: { bg: 'bg-purple-100', text: 'text-purple-800', label: 'Packed' },
@@ -270,14 +272,13 @@ const AdminOrderDetails = () => {
               onChange={(e) => updateOrderStatus(e.target.value)}
               className="ml-2 text-sm border-gray-300 rounded-md"
             >
-              <option value="pending">Pending</option>
+              <option value="placed">Placed</option>
               <option value="confirmed">Confirmed</option>
-              <option value="processing">Processing</option>
               <option value="packed">Packed</option>
               <option value="shipped">Shipped</option>
               <option value="delivered">Delivered</option>
               <option value="cancelled">Cancelled</option>
-              <option value="returned">Returned</option>
+              <option value="refunded">Refunded</option>
             </select>
           </div>
         </div>
@@ -395,11 +396,14 @@ const AdminOrderDetails = () => {
                       
                       return (
                         <div key={idx} className="flex gap-4 p-4 bg-gray-50 rounded-lg">
-                          <div className="w-20 h-20 shrink-0">
+                          <div 
+                            className="w-20 h-20 shrink-0 relative group cursor-pointer"
+                            onClick={() => setSelectedImage({ url: imageUrl, name: item.name })}
+                          >
                             <img
                               src={imageUrl}
                               alt={item.name}
-                              className="w-full h-full object-cover rounded-lg"
+                              className="w-full h-full object-cover rounded-lg transition-all group-hover:brightness-75"
                               onError={(e) => {
                                 console.log('Image load error:', e.target.src);
                                 const placeholderSvg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23f3f4f6' width='200' height='200'/%3E%3Cg transform='translate(100 100)'%3E%3Crect x='-30' y='-45' width='60' height='60' fill='%23d1d5db' rx='3'/%3E%3Ccircle cx='0' cy='-25' r='8' fill='%239ca3af'/%3E%3Cpath d='M -18 -12 L -8 -22 L 3 -12 L 18 -25 L 18 0 L -18 0 Z' fill='%239ca3af'/%3E%3C/g%3E%3Ctext fill='%236b7280' font-family='Arial' font-size='12' x='100' y='140' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E";
@@ -408,6 +412,9 @@ const AdminOrderDetails = () => {
                                 }
                               }}
                             />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all rounded-lg">
+                              <ZoomIn className="text-white opacity-0 group-hover:opacity-100 transition-opacity" size={20} />
+                            </div>
                           </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="font-medium text-gray-900 truncate">{item.name}</h4>
@@ -568,6 +575,32 @@ const AdminOrderDetails = () => {
           )}
         </div>
       </div>
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div className="relative max-w-4xl max-h-[90vh] w-full">
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors"
+            >
+              <X size={32} />
+            </button>
+            <img
+              src={selectedImage.url}
+              alt={selectedImage.name}
+              className="w-full h-full object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <p className="text-white text-center mt-4 text-lg font-medium">
+              {selectedImage.name}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

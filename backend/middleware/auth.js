@@ -94,11 +94,15 @@ export const auditLog = (action, resource) => {
       try {
         const statusCode = res.statusCode;
         
+        // Validate resourceId is a valid ObjectId before saving
+        const resourceId = req.params.id || req.body._id;
+        const isValidObjectId = resourceId && /^[0-9a-fA-F]{24}$/.test(resourceId);
+        
         await AuditLog.create({
           user: req.user ? req.user._id : null,
           action,
           resource,
-          resourceId: req.params.id || req.body._id,
+          resourceId: isValidObjectId ? resourceId : null,
           details: {
             method: req.method,
             path: req.path,
