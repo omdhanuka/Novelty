@@ -227,8 +227,50 @@ router.post('/', upload.any(), auditLog('create', 'Product'), async (req, res) =
 
     // Handle attributes structure
     if (req.body['attributes[colors]']) {
+      // Parse colors and ensure they're a flat array of strings
+      let colorsValue = req.body['attributes[colors]'];
+      let colors = [];
+      
+      try {
+        // First parse if it's a string
+        if (typeof colorsValue === 'string') {
+          colors = JSON.parse(colorsValue);
+        } else if (Array.isArray(colorsValue)) {
+          colors = colorsValue;
+        }
+        
+        // Deep clean: recursively parse any JSON strings in the array
+        const deepParse = (arr) => {
+          return arr.flat().map(item => {
+            if (!item || item === '[]' || item === '{}' || item === '') {
+              return null;
+            }
+            // If it's a string that looks like JSON, parse it
+            if (typeof item === 'string' && (item.trim().startsWith('[') || item.trim().startsWith('{'))) {
+              try {
+                const parsed = JSON.parse(item);
+                // If parsed result is an array, recursively deep parse it
+                if (Array.isArray(parsed)) {
+                  return deepParse(parsed);
+                }
+                return parsed;
+              } catch (e) {
+                // Not valid JSON, return as-is
+                return item;
+              }
+            }
+            return item;
+          }).flat().filter(item => item !== null && item !== '');
+        };
+        
+        colors = deepParse([colors]);
+      } catch (e) {
+        console.error('❌ Error parsing colors:', e);
+        colors = [];
+      }
+      
       productData.attributes = {
-        colors: JSON.parse(req.body['attributes[colors]'] || '[]'),
+        colors: colors,
         material: req.body['attributes[material]'] || '',
         sizes: JSON.parse(req.body['attributes[sizes]'] || '[]'),
         occasion: JSON.parse(req.body['attributes[occasion]'] || '[]'),
@@ -317,6 +359,32 @@ router.put('/:id', auditLog('update', 'Product'), async (req, res) => {
         success: false,
         message: 'Product not found',
       });
+    }
+
+    // Clean up colors if present in attributes
+    if (req.body.attributes && req.body.attributes.colors) {
+      let colors = req.body.attributes.colors;
+      
+      // Flatten and clean up colors array
+      if (Array.isArray(colors)) {
+        colors = colors.flat().filter(c => {
+          if (!c || c === '[]' || c === '{}') return false;
+          return true;
+        }).map(c => {
+          // If still a JSON string, parse it
+          if (typeof c === 'string' && (c.startsWith('[') || c.startsWith('{'))) {
+            try {
+              const parsed = JSON.parse(c);
+              return Array.isArray(parsed) ? parsed : c;
+            } catch (e) {
+              return c;
+            }
+          }
+          return c;
+        }).flat();
+        
+        req.body.attributes.colors = colors;
+      }
     }
 
     // Update product fields

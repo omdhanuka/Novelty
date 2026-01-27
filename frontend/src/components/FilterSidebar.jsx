@@ -148,14 +148,6 @@ const FilterSidebar = ({ filters, activeFilters, onFilterChange, onClearFilters,
 
       {/* Filters Content */}
       <div className="flex-1 overflow-y-auto">
-        {/* Debug logs moved outside JSX */}
-        {(() => {
-          console.log('FilterSidebar - filters:', filters);
-          console.log('FilterSidebar - categories:', filters.categories);
-          console.log('FilterSidebar - colors:', filters.colors);
-          return null;
-        })()}
-        
         {/* Categories */}
         {filters.categories && filters.categories.length > 0 ? (
           <FilterSection title="Categories" sectionKey="category" openSections={openSections} toggleSection={toggleSection}>

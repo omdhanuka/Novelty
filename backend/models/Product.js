@@ -224,6 +224,25 @@ productSchema.pre('save', function (next) {
     this.stockStatus = 'in_stock';
   }
   
+  // Clean up colors - ensure no nested JSON strings
+  if (this.attributes && this.attributes.colors && Array.isArray(this.attributes.colors)) {
+    this.attributes.colors = this.attributes.colors
+      .map(color => {
+        // If color is a JSON string, parse it
+        if (typeof color === 'string' && (color.trim().startsWith('[') || color.trim().startsWith('{'))) {
+          try {
+            const parsed = JSON.parse(color);
+            return Array.isArray(parsed) ? parsed : color;
+          } catch (e) {
+            return color;
+          }
+        }
+        return color;
+      })
+      .flat()
+      .filter(c => c && c !== '[]' && c !== '{}' && c !== '');
+  }
+  
   next();
 });
 

@@ -40,10 +40,13 @@ router.get('/', async (req, res) => {
       if (maxPrice) query['price.selling'].$lte = Number(maxPrice);
     }
 
-    // Color filter
+    // Color filter - case-insensitive matching
     if (colors) {
-      const colorArray = colors.split(',');
-      query['attributes.colors'] = { $in: colorArray };
+      const colorArray = colors.split(',').map(c => c.trim());
+      // Create $or query with case-insensitive regex for each color
+      query['attributes.colors'] = { 
+        $in: colorArray.map(color => new RegExp(`^${color}$`, 'i'))
+      };
     }
 
     // Material filter
