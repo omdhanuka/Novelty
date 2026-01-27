@@ -5,6 +5,12 @@ import Settings from '../models/Settings.js';
 
 dotenv.config();
 
+// Security check - only allow in development
+if (process.env.NODE_ENV === 'production') {
+  console.error('❌ This script cannot be run in production environment for security reasons!');
+  process.exit(1);
+}
+
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/bagshop';
 
 const setupAdmin = async () => {
