@@ -98,6 +98,30 @@ export const createOrder = async (req, res) => {
         });
       }
 
+      // Validate selected color and size against product attributes
+      const selectedColor = (item.selectedColor || '').toString().trim();
+      const selectedSize = (item.selectedSize || '').toString().trim();
+
+      if (selectedColor) {
+        const availableColors = (product.attributes && product.attributes.colors) || [];
+        const foundColor = availableColors.some(c => String(c).toLowerCase() === selectedColor.toLowerCase());
+        if (!foundColor) {
+          return res.status(400).json({
+            success: false,
+            message: `Selected color '${selectedColor}' is not available for product ${product.name}`,
+          });
+        }
+      }
+
+      if (selectedSize) {
+        const availableSizes = (product.attributes && product.attributes.sizes) || [];
+        const foundSize = availableSizes.some(s => String(s).toLowerCase() === selectedSize.toLowerCase());
+        if (!foundSize) {
+          console.warn(`Selected size '${selectedSize}' not available for product ${product._id} — continuing as size is optional`);
+          // sizes are optional — do not block order
+        }
+      }
+
       if (product.stock < quantity) {
         return res.status(400).json({
           success: false,
