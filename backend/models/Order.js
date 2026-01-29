@@ -146,8 +146,8 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
-// Generate order number before saving
-orderSchema.pre('save', async function (next) {
+// Generate order number before validation so required check passes
+orderSchema.pre('validate', function (next) {
   if (!this.orderNumber) {
     const timestamp = Date.now().toString().slice(-8);
     const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');

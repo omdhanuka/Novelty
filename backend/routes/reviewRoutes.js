@@ -1,7 +1,7 @@
 import express from 'express';
 import Review from '../models/Review.js';
 import Product from '../models/Product.js';
-import { protect } from './authRoutes.js';
+import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 

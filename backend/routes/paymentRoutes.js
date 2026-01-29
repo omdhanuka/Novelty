@@ -1,7 +1,7 @@
-import express from 'express';
+﻿import express from 'express';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
-import { protect } from './authRoutes.js';
+import { protect } from '../middleware/auth.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -70,3 +70,4 @@ router.post('/verify', protect, async (req, res) => {
 });
 
 export default router;
+

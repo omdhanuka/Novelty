@@ -213,11 +213,11 @@ const AdminProducts = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <img
-                          src={`http://localhost:5000${product.mainImage}` || 'https://via.placeholder.com/40'}
+                          src={`http://localhost:5000${product.mainImage}` || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="40" height="40"%3E%3Crect fill="%23ddd" width="40" height="40"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em" font-size="10"%3ENo Image%3C/text%3E%3C/svg%3E'}
                           alt={product.name}
                           className="h-10 w-10 rounded object-cover bg-gray-100"
                           onError={(e) => {
-                            e.target.src = 'https://via.placeholder.com/40?text=No+Image';
+                            e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="40" height="40"%3E%3Crect fill="%23ddd" width="40" height="40"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em" font-size="10"%3ENo Image%3C/text%3E%3C/svg%3E';
                           }}
                         />
                         <div className="ml-4">
@@ -469,7 +469,7 @@ const AdminProducts = () => {
                       alt={editingProduct.name}
                       className="h-32 w-32 rounded object-cover border"
                       onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/128?text=No+Image';
+                        e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="128" height="128"%3E%3Crect fill="%23ddd" width="128" height="128"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em" font-size="14"%3ENo Image%3C/text%3E%3C/svg%3E';
                       }}
                     />
                   </div>

@@ -85,7 +85,7 @@ export const authorize = (...roles) => {
 };
 
 // Audit log middleware
-export const auditLog = (action, resource) => {
+export const auditLog = (action, resourceParam) => {
   return async (req, res, next) => {
     // Store original send function
     const originalSend = res.send;
@@ -97,6 +97,9 @@ export const auditLog = (action, resource) => {
         // Validate resourceId is a valid ObjectId before saving
         const resourceId = req.params.id || req.body._id;
         const isValidObjectId = resourceId && /^[0-9a-fA-F]{24}$/.test(resourceId);
+        
+        // Use the resourceParam passed to the middleware
+        const resource = resourceParam || 'unknown';
         
         await AuditLog.create({
           user: req.user ? req.user._id : null,
