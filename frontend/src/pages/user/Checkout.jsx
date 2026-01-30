@@ -170,12 +170,127 @@ const Checkout = () => {
     }
 
     setLoading(true);
+    
     try {
+      // For Cash on Delivery, directly create order
+      if (paymentMethod === 'cod') {
+        await createOrder(null);
+      } else {
+        // For online payment methods, initiate payment first
+        await initiatePayment();
+      }
+    } catch (error) {
+      console.error('Place order error:', error);
+      alert('Failed to process. Please try again.');
+      setLoading(false);
+    }
+  };
+
+  const initiatePayment = async () => {
+    try {
+      // Create Razorpay order
+      const response = await api.post('/payment/create-order', {
+        amount: grandTotal,
+        currency: 'INR',
+      });
+
+      if (!response.data.success) {
+        throw new Error('Failed to create payment order');
+      }
+
+      const { orderId, amount, currency, key } = response.data.data;
+
+      // Load Razorpay script
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      document.body.appendChild(script);
+
+      script.onload = () => {
+        // Get selected address details for prefill
+        const selectedAddr = addresses.find(addr => addr._id === selectedAddress);
+        
+        const options = {
+          key,
+          amount,
+          currency,
+          name: 'Bagvo',
+          description: 'Order Payment',
+          order_id: orderId,
+          handler: async (response) => {
+            // Verify payment
+            try {
+              const verifyResponse = await api.post('/payment/verify', {
+                razorpayOrderId: response.razorpay_order_id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature,
+              });
+
+              if (verifyResponse.data.success) {
+                // Payment successful, create order
+                await createOrder({
+                  transactionId: response.razorpay_payment_id,
+                  razorpayOrderId: response.razorpay_order_id,
+                });
+              } else {
+                throw new Error('Payment verification failed');
+              }
+            } catch (error) {
+              console.error('Payment verification error:', error);
+              alert('Payment verification failed. Please contact support.');
+              setLoading(false);
+            }
+          },
+          modal: {
+            ondismiss: () => {
+              setLoading(false);
+              alert('Payment cancelled');
+            },
+          },
+          prefill: {
+            name: selectedAddr?.fullName || '',
+            email: selectedAddr?.email || '',
+            contact: selectedAddr?.mobile || '',
+          },
+          theme: {
+            color: '#4F46E5',
+          },
+        };
+
+        const razorpay = new window.Razorpay(options);
+        razorpay.open();
+      };
+
+      script.onerror = () => {
+        setLoading(false);
+        alert('Failed to load payment gateway');
+      };
+    } catch (error) {
+      console.error('Payment initiation error:', error);
+      setLoading(false);
+      throw error;
+    }
+  };
+
+  const createOrder = async (paymentDetails) => {
+    try {
+      // Transform cart items to proper format
+      const orderItems = isBuyNow 
+        ? [buyNowProduct] 
+        : (cart?.items || []).map(item => ({
+            product: item.product?._id || item.product,
+            quantity: item.quantity,
+            selectedColor: item.selectedColor || '',
+            selectedSize: item.selectedSize || '',
+            productSnapshot: item.productSnapshot,
+          }));
+
       const orderData = {
         address: selectedAddress,
         paymentMethod,
-        items: isBuyNow ? [buyNowProduct] : cart?.items,
+        items: orderItems,
         coupon: appliedCoupon?.code,
+        paymentDetails,
       };
 
       const response = await api.post('/orders', orderData);
@@ -183,13 +298,15 @@ const Checkout = () => {
         setCurrentStep(4);
         // Clear cart if not buy now
         if (!isBuyNow) {
-          await api.delete('/cart/clear');
+          await api.delete('/cart');
+          await fetchCart();
         }
+        setLoading(false);
       }
     } catch (error) {
-      alert('Failed to place order. Please try again.');
-    } finally {
       setLoading(false);
+      alert('Failed to place order. Please try again.');
+      throw error;
     }
   };
 

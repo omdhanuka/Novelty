@@ -7,7 +7,7 @@ import Order from '../models/Order.js';
 export const createOrder = async (req, res) => {
   try {
     console.log('📦 Create order request body:', req.body);
-    const { address, paymentMethod, items, coupon } = req.body || {};
+    const { address, paymentMethod, items, coupon, paymentDetails } = req.body || {};
 
     // Detailed validation with informative messages
     if (!address) {
@@ -68,29 +68,15 @@ export const createOrder = async (req, res) => {
 
     // Calculate totals
     let itemsPrice = 0;
-    const orderItems = items.map(item => {
-      const price = item.productSnapshot?.price || 0;
-      const quantity = item.quantity || 1;
-      itemsPrice += price * quantity;
+    const orderItems = [];
 
-      return {
-        product: item.product?._id || item.product,
-        name: item.productSnapshot?.name || item.product?.name,
-        image: item.productSnapshot?.image || item.product?.mainImage,
-        price: price,
-        quantity: quantity,
-        selectedColor: item.selectedColor || '',
-        selectedSize: item.selectedSize || '',
-      };
-    });
-
-    // Validate stock and update quantities
+    // Validate stock and build order items (fill missing snapshot data from DB)
     const Product = mongoose.model('Product');
     for (const item of items) {
       const productId = item.product?._id || item.product;
       const quantity = item.quantity || 1;
       const product = await Product.findById(productId);
-      
+
       if (!product) {
         return res.status(404).json({
           success: false,
@@ -104,12 +90,23 @@ export const createOrder = async (req, res) => {
 
       if (selectedColor) {
         const availableColors = (product.attributes && product.attributes.colors) || [];
-        const foundColor = availableColors.some(c => String(c).toLowerCase() === selectedColor.toLowerCase());
+        // Normalize colors (handle JSON strings and arrays)
+        const normalizedColors = availableColors.flatMap(c => {
+          if (typeof c === 'string' && c.trim().startsWith('[')) {
+            try {
+              const parsed = JSON.parse(c);
+              return Array.isArray(parsed) ? parsed : [c];
+            } catch (e) {
+              return [c];
+            }
+          }
+          return [c];
+        }).map(c => String(c).toLowerCase().trim());
+        
+        const foundColor = normalizedColors.includes(selectedColor.toLowerCase());
         if (!foundColor) {
-          return res.status(400).json({
-            success: false,
-            message: `Selected color '${selectedColor}' is not available for product ${product.name}`,
-          });
+          console.warn(`Color '${selectedColor}' not in [${normalizedColors.join(', ')}] for ${product.name} - allowing order`);
+          // Don't block order - just log warning
         }
       }
 
@@ -129,6 +126,23 @@ export const createOrder = async (req, res) => {
         });
       }
 
+      // Determine prices (use snapshot if present, else product current price)
+      const sellingPrice = item.productSnapshot?.price ?? product.price?.selling ?? 0;
+      const originalPrice = item.productSnapshot?.originalPrice ?? product.price?.mrp ?? sellingPrice;
+
+      // Build order item
+      orderItems.push({
+        product: product._id,
+        name: item.productSnapshot?.name || product.name,
+        image: item.productSnapshot?.image || product.mainImage || (product.images && product.images[0]) || '',
+        price: sellingPrice,
+        quantity,
+        selectedColor: item.selectedColor || '',
+        selectedSize: item.selectedSize || '',
+      });
+
+      itemsPrice += sellingPrice * quantity;
+
       // Update stock
       product.stock -= quantity;
       product.sold = (product.sold || 0) + quantity;
@@ -139,7 +153,7 @@ export const createOrder = async (req, res) => {
     const taxPrice = itemsPrice * 0.18;
     const totalPrice = itemsPrice + shippingPrice + taxPrice;
 
-    const order = await Order.create({
+    const orderData = {
       user: req.user._id,
       items: orderItems,
       shippingAddress: mappedAddress,
@@ -148,9 +162,32 @@ export const createOrder = async (req, res) => {
       taxPrice,
       shippingPrice,
       totalPrice,
-      couponCode: coupon?.code || '',
-      couponDiscount: coupon?.discount || 0,
-    });
+    };
+
+    // Add coupon if provided
+    if (coupon) {
+      const couponCode = typeof coupon === 'string' ? coupon : coupon?.code;
+      const couponDiscountAmt = typeof coupon === 'object' ? coupon?.discount : 0;
+      if (couponCode) {
+        orderData.couponApplied = {
+          code: couponCode,
+          discount: couponDiscountAmt || 0,
+        };
+      }
+    }
+
+    // Add payment details if provided (for online payments)
+    if (paymentDetails) {
+      orderData.paymentInfo = {
+        razorpayPaymentId: paymentDetails.transactionId,
+        razorpayOrderId: paymentDetails.razorpayOrderId,
+      };
+      orderData.paymentStatus = 'paid';
+      orderData.isPaid = true;
+      orderData.paidAt = new Date();
+    }
+
+    const order = await Order.create(orderData);
 
     res.status(201).json({
       success: true,
@@ -158,6 +195,12 @@ export const createOrder = async (req, res) => {
     });
   } catch (error) {
     console.error('Create order error:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Error details:', {
+      message: error.message,
+      name: error.name,
+      code: error.code,
+    });
     res.status(500).json({
       success: false,
       message: 'Failed to create order',

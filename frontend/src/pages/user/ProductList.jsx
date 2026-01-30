@@ -145,9 +145,15 @@ const ProductList = () => {
         return;
       }
 
+      // Use default variant values when user hasn't selected any
+      const defaultColor = product?.attributes?.colors?.[0] || '';
+      const defaultSize = product?.attributes?.sizes?.[0] || '';
+
       await api.post('/cart/add', {
         productId: product._id,
         quantity: 1,
+        selectedColor: defaultColor,
+        selectedSize: defaultSize,
       });
 
       // Show success notification (you can add a toast here)

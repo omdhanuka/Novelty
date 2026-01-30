@@ -71,11 +71,33 @@ export const CartProvider = ({ children }) => {
   const addToCart = async (productId, quantity = 1, selectedColor = '', selectedSize = '') => {
     try {
       console.log('➕ Adding to cart:', { productId, quantity, selectedColor, selectedSize });
+
+      // If no color provided, try to fetch product and pick a default color if available
+      let colorToSend = selectedColor || '';
+      let sizeToSend = selectedSize || '';
+      if (!colorToSend || !sizeToSend) {
+        try {
+          const prodResp = await api.get(`/products/${productId}`);
+          const prod = prodResp.data?.data;
+          if (prod) {
+            if (!colorToSend && prod.attributes?.colors?.length) {
+              colorToSend = prod.attributes.colors[0];
+            }
+            if (!sizeToSend && prod.attributes?.sizes?.length) {
+              sizeToSend = prod.attributes.sizes[0];
+            }
+          }
+        } catch (e) {
+          // If fetch fails, continue with empty values
+          console.warn('Failed to fetch product for default variant:', e);
+        }
+      }
+
       const response = await api.post('/cart/add', {
         productId,
         quantity,
-        selectedColor,
-        selectedSize,
+        selectedColor: colorToSend,
+        selectedSize: sizeToSend,
       });
       
       if (response.data.success) {
