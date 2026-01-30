@@ -18,7 +18,7 @@ import {
   Banknote,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useCart } from '../../context/CartContext';
+import { useCart } from '../../context/useCart';
 import { api } from '../../lib/api';
 
 const Checkout = () => {

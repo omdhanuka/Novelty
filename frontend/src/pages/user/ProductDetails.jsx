@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../../lib/api';
-import { useCart } from '../../context/CartContext';
+import { useCart } from '../../context/useCart';
 import ProductCard from '../../components/ProductCard';
 
 const ProductDetails = () => {

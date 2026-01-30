@@ -54,6 +54,8 @@ export const addToCart = async (req, res) => {
   try {
     const { productId, quantity = 1, selectedColor = '', selectedSize = '' } = req.body;
 
+    console.log('📦 Adding to cart:', { productId, quantity, selectedColor, selectedSize });
+
     // Validate product
     const product = await Product.findById(productId).populate('category');
     if (!product) {
@@ -62,6 +64,13 @@ export const addToCart = async (req, res) => {
         message: 'Product not found',
       });
     }
+
+    console.log('✅ Product found:', { 
+      id: product._id, 
+      name: product.name, 
+      price: product.price,
+      stock: product.stock 
+    });
 
     // Check stock
     if (product.stock < quantity || product.stockStatus === 'out_of_stock') {
@@ -86,7 +95,7 @@ export const addToCart = async (req, res) => {
     );
 
     if (existingItemIndex > -1) {
-      // Update quantity
+      // Update quantity for existing item
       const newQuantity = cart.items[existingItemIndex].quantity + quantity;
       
       if (newQuantity > product.stock) {
@@ -97,14 +106,26 @@ export const addToCart = async (req, res) => {
       }
 
       cart.items[existingItemIndex].quantity = newQuantity;
+      // Update price in case it's missing
+      if (!cart.items[existingItemIndex].price) {
+        cart.items[existingItemIndex].price = product.price.selling;
+      }
     } else {
-      // Add new item
+      // Add new item with product snapshot
+      const sellingPrice = product.price?.selling || 0;
       cart.items.push({
         product: productId,
         quantity,
         selectedColor,
         selectedSize,
-        price: product.price.selling,
+        price: sellingPrice,
+        productSnapshot: {
+          name: product.name,
+          image: product.mainImage || product.images?.[0],
+          price: sellingPrice,
+          originalPrice: product.price?.original || sellingPrice,
+          discount: product.price?.discount || 0,
+        },
       });
     }
 
@@ -169,11 +190,20 @@ export const updateCartItem = async (req, res) => {
 
     item.quantity = quantity;
     await cart.save();
+    await cart.populate({
+      path: 'items.product',
+      select: 'name images mainImage price stock stockStatus attributes category',
+      populate: { path: 'category', select: 'name slug' },
+    });
 
     res.json({
       success: true,
       message: 'Cart updated',
-      data: cart,
+      data: {
+        ...cart.toObject(),
+        totalPrice: cart.getTotalPrice(),
+        totalItems: cart.getTotalItems(),
+      },
     });
   } catch (error) {
     console.error('Update cart error:', error);
@@ -200,11 +230,20 @@ export const removeFromCart = async (req, res) => {
 
     cart.items.pull(req.params.itemId);
     await cart.save();
+    await cart.populate({
+      path: 'items.product',
+      select: 'name images mainImage price stock stockStatus attributes category',
+      populate: { path: 'category', select: 'name slug' },
+    });
 
     res.json({
       success: true,
       message: 'Item removed from cart',
-      data: cart,
+      data: {
+        ...cart.toObject(),
+        totalPrice: cart.getTotalPrice(),
+        totalItems: cart.getTotalItems(),
+      },
     });
   } catch (error) {
     console.error('Remove from cart error:', error);
@@ -235,7 +274,11 @@ export const clearCart = async (req, res) => {
     res.json({
       success: true,
       message: 'Cart cleared',
-      data: cart,
+      data: {
+        ...cart.toObject(),
+        totalPrice: cart.getTotalPrice(),
+        totalItems: cart.getTotalItems(),
+      },
     });
   } catch (error) {
     console.error('Clear cart error:', error);

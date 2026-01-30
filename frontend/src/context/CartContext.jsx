@@ -1,20 +1,14 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect } from 'react';
 import { api } from '../lib/api';
+import { useCartStore } from '../store';
 
-const CartContext = createContext();
-
-export const useCart = () => {
-  const context = useContext(CartContext);
-  if (!context) {
-    throw new Error('useCart must be used within CartProvider');
-  }
-  return context;
-};
+export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+  const [forceUpdate, setForceUpdate] = useState(0);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -30,20 +24,44 @@ export const CartProvider = ({ children }) => {
     } else {
       setCartCount(0);
     }
-  }, [cart]);
+  }, [cart, forceUpdate]);
+
+  const syncCartState = (cartData) => {
+    console.log('🔄 Syncing cart state:', cartData);
+    setCart(cartData);
+    const count = cartData?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
+    console.log('📊 Cart count updated to:', count);
+    setCartCount(count);
+    setForceUpdate(prev => prev + 1);
+    
+    // Sync zustand store
+    try {
+      const mapped = (cartData?.items || []).map((it) => ({
+        id: it.product?._id || it.product,
+        quantity: it.quantity,
+        price: it.price || it.product?.price?.selling || (it.productSnapshot?.price ?? 0),
+        product: it.product,
+        snapshot: it.productSnapshot,
+        _id: it._id,
+      }));
+      console.log('🎯 Zustand store updated with items:', mapped.length);
+      useCartStore.setState({ items: mapped });
+    } catch (e) {
+      console.error('Failed to sync zustand store:', e);
+    }
+  };
 
   const fetchCart = async () => {
     try {
       setLoading(true);
       const response = await api.get('/cart');
       if (response.data.success) {
-        setCart(response.data.data);
+        syncCartState(response.data.data);
       }
     } catch (error) {
       console.error('Failed to fetch cart:', error);
-      // If unauthorized, clear cart
       if (error.response?.status === 401) {
-        setCart(null);
+        syncCartState(null);
       }
     } finally {
       setLoading(false);
@@ -52,6 +70,7 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = async (productId, quantity = 1, selectedColor = '', selectedSize = '') => {
     try {
+      console.log('➕ Adding to cart:', { productId, quantity, selectedColor, selectedSize });
       const response = await api.post('/cart/add', {
         productId,
         quantity,
@@ -60,11 +79,12 @@ export const CartProvider = ({ children }) => {
       });
       
       if (response.data.success) {
-        setCart(response.data.data);
+        console.log('✅ Add to cart successful:', response.data.data);
+        syncCartState(response.data.data);
         return { success: true, message: 'Product added to cart!' };
       }
     } catch (error) {
-      console.error('Add to cart error:', error);
+      console.error('❌ Add to cart error:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to add to cart',
@@ -74,25 +94,25 @@ export const CartProvider = ({ children }) => {
 
   const updateQuantity = async (itemId, quantity) => {
     try {
-      const response = await api.put(`/cart/update/${itemId}`, { quantity });
+      const response = await api.put(`/cart/items/${itemId}`, { quantity });
       if (response.data.success) {
-        setCart(response.data.data);
+        syncCartState(response.data.data);
         return { success: true };
       }
     } catch (error) {
-      console.error('Update cart error:', error);
+      console.error('Update quantity error:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Failed to update cart',
+        message: error.response?.data?.message || 'Failed to update quantity',
       };
     }
   };
 
   const removeFromCart = async (itemId) => {
     try {
-      const response = await api.delete(`/cart/remove/${itemId}`);
+      const response = await api.delete(`/cart/items/${itemId}`);
       if (response.data.success) {
-        setCart(response.data.data);
+        syncCartState(response.data.data);
         return { success: true };
       }
     } catch (error) {
@@ -108,7 +128,7 @@ export const CartProvider = ({ children }) => {
     try {
       const response = await api.delete('/cart/clear');
       if (response.data.success) {
-        setCart(response.data.data);
+        syncCartState(response.data.data);
         return { success: true };
       }
     } catch (error) {
@@ -121,7 +141,7 @@ export const CartProvider = ({ children }) => {
     try {
       const response = await api.post(`/cart/move-to-wishlist/${itemId}`);
       if (response.data.success) {
-        setCart(response.data.data);
+        syncCartState(response.data.data);
         return { success: true, message: 'Item moved to wishlist' };
       }
     } catch (error) {

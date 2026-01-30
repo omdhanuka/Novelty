@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { useCartStore, useWishlistStore, useUIStore } from '../store';
 import { useAuth } from '../context/AuthContext';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../context/useCart';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);

@@ -20,6 +20,10 @@ const cartItemSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  price: {
+    type: Number,
+    default: 0,
+  },
   // Snapshot of product details at time of adding (prevent price changes)
   productSnapshot: {
     name: String,
@@ -62,7 +66,7 @@ cartSchema.pre('save', function (next) {
 // Methods
 cartSchema.methods.getTotalPrice = function () {
   return this.items.reduce((total, item) => {
-    const price = item.productSnapshot?.price || 0;
+    const price = item.price || item.productSnapshot?.price || 0;
     return total + price * item.quantity;
   }, 0);
 };

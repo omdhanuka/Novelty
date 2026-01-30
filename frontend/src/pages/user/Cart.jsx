@@ -12,7 +12,7 @@ import {
   Shield,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useCart } from '../../context/CartContext';
+import { useCart } from '../../context/useCart';
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -232,9 +232,9 @@ const Cart = () => {
                           <div className="text-right">
                             <div className="flex items-center gap-2">
                               <span className="text-2xl font-bold text-indigo-600">
-                                ₹{((item.productSnapshot?.price || 0) * item.quantity).toLocaleString('en-IN')}
+                                ₹{((item.price || item.productSnapshot?.price || product?.price?.selling || 0) * item.quantity).toLocaleString('en-IN')}
                               </span>
-                              {item.productSnapshot?.originalPrice > item.productSnapshot?.price && (
+                              {item.productSnapshot?.originalPrice > (item.price || item.productSnapshot?.price) && (
                                 <span className="text-sm text-gray-400 line-through">
                                   ₹{((item.productSnapshot?.originalPrice || 0) * item.quantity).toLocaleString('en-IN')}
                                 </span>
