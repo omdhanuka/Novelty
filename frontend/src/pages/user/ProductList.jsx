@@ -214,181 +214,56 @@ const ProductList = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB]">
-      {/* Combined Navigation Bar with Header */}
-      <nav className="bg-white shadow-md sticky top-0 z-50">
-        {/* Top Bar */}
-        <div className="border-b border-gray-100">
-          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12">
-            <div className="flex items-center justify-between h-16">
-              {/* Left - Back to Home */}
-              <Link 
-                to="/" 
-                className="group flex items-center gap-2.5 px-3 py-2 rounded-lg text-gray-700 hover:text-purple-600 hover:bg-purple-50 transition-all duration-200"
-              >
-                <div className="p-1 rounded-md group-hover:scale-110 transition-transform duration-200">
-                  <Home className="w-5 h-5" />
-                </div>
-                <span className="hidden sm:inline font-semibold text-sm tracking-wide">Home</span>
+    <div className="min-h-screen bg-white">
+      {/* Compact Top Navigation */}
+      <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div className="max-w-[1400px] mx-auto px-4">
+          <div className="flex items-center justify-between h-14">
+            <Link to="/" className="flex items-center gap-2 text-gray-600 hover:text-purple-600 px-3 py-2">
+              <Home className="w-4 h-4" />
+              <span className="text-sm font-medium">Home</span>
+            </Link>
+            <Link to="/" className="absolute left-1/2 transform -translate-x-1/2">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">BAGVO</h1>
+            </Link>
+            <div className="flex items-center gap-3">
+              <Link to="/cart" className="relative p-2">
+                <ShoppingCart className="w-5 h-5 text-gray-700" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
               </Link>
-
-              {/* Center - Enhanced Logo/Brand */}
-              <Link 
-                to="/" 
-                className="absolute left-1/2 transform -translate-x-1/2 group"
-              >
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent tracking-tight group-hover:scale-105 transition-transform duration-200">
-                  BAGVO
-                </h1>
-              </Link>
-
-              {/* Right - Cart & Account Icons */}
-              <div className="flex items-center gap-2">
-                {/* Cart Icon */}
-                <Link 
-                  to="/cart" 
-                  className="relative group p-2.5 hover:bg-purple-50 rounded-xl transition-all duration-200"
-                >
-                  <div className="relative">
-                    <ShoppingCart className="w-5 h-5 text-gray-700 group-hover:text-purple-600 transition-colors duration-200" />
-                    {cartCount > 0 && (
-                      <span className="absolute -top-2 -right-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shadow-md">
-                        {cartCount > 99 ? '99+' : cartCount}
-                      </span>
-                    )}
-                  </div>
-                </Link>
-
-                {/* Account Icon with Dropdown */}
-                {user ? (
-                  <div className="relative" ref={userMenuRef}>
-                    <button
-                      onClick={() => setShowUserMenu(!showUserMenu)}
-                      className="group p-2.5 hover:bg-purple-50 rounded-xl transition-all duration-200"
-                    >
-                      <User className="w-5 h-5 text-gray-700 group-hover:text-purple-600 transition-colors duration-200" />
-                    </button>
-
-                    {/* Dropdown Menu */}
-                    {showUserMenu && (
-                      <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                        {/* User Info Header */}
-                        <div className="px-4 py-3 bg-gradient-to-r from-purple-50 to-pink-50 border-b border-gray-100">
-                          <p className="font-semibold text-gray-900 text-sm">{user.name}</p>
-                          <p className="text-xs text-gray-600 truncate">{user.email}</p>
-                        </div>
-
-                        {/* Menu Items */}
-                        <div className="py-2">
-                          <Link
-                            to="/profile"
-                            onClick={() => setShowUserMenu(false)}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors"
-                          >
-                            <User className="w-4 h-4" />
-                            <span>My Profile</span>
-                          </Link>
-                          
-                          <Link
-                            to="/orders"
-                            onClick={() => setShowUserMenu(false)}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors"
-                          >
-                            <Package className="w-4 h-4" />
-                            <span>My Orders</span>
-                          </Link>
-                          
-                          <Link
-                            to="/wishlist"
-                            onClick={() => setShowUserMenu(false)}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors"
-                          >
-                            <Heart className="w-4 h-4" />
-                            <span>My Wishlist</span>
-                          </Link>
-                          
-                          <Link
-                            to="/addresses"
-                            onClick={() => setShowUserMenu(false)}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors"
-                          >
-                            <MapPin className="w-4 h-4" />
-                            <span>My Addresses</span>
-                          </Link>
-                          
-                          <Link
-                            to="/change-password"
-                            onClick={() => setShowUserMenu(false)}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors"
-                          >
-                            <Lock className="w-4 h-4" />
-                            <span>Change Password</span>
-                          </Link>
-                        </div>
-
-                        {/* Logout Button */}
-                        <div className="border-t border-gray-100">
-                          <button
-                            onClick={() => {
-                              setShowUserMenu(false);
-                              logout();
-                            }}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors w-full"
-                          >
-                            <LogOut className="w-4 h-4" />
-                            <span>Logout</span>
-                          </button>
-                        </div>
+              {user ? (
+                <div className="relative" ref={userMenuRef}>
+                  <button onClick={() => setShowUserMenu(!showUserMenu)} className="flex items-center gap-2 p-2">
+                    <User className="w-5 h-5 text-gray-700" />
+                    <span className="hidden md:inline text-sm font-medium text-gray-700">{user.name}</span>
+                  </button>
+                  {showUserMenu && (
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border overflow-hidden">
+                      <div className="px-4 py-3 bg-gray-50 border-b">
+                        <p className="font-semibold text-sm">{user.name}</p>
+                        <p className="text-xs text-gray-600 truncate">{user.email}</p>
                       </div>
-                    )}
-                  </div>
-                ) : (
-                  <Link 
-                    to="/login" 
-                    className="group p-2.5 hover:bg-purple-50 rounded-xl transition-all duration-200"
-                  >
-                    <User className="w-5 h-5 text-gray-700 group-hover:text-purple-600 transition-colors duration-200" />
-                  </Link>
-                )}
-
-                {/* User Name Badge */}
-                {user && (
-                  <div className="hidden md:flex items-center gap-2 ml-2 px-3 py-1.5 bg-purple-50 rounded-lg border border-purple-100">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="text-sm font-medium text-gray-700 max-w-[100px] truncate">
-                      {user.name}
-                    </span>
-                  </div>
-                )}
-              </div>
+                      <div className="py-1">
+                        <Link to="/user/profile" onClick={() => setShowUserMenu(false)} className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50"><User className="w-4 h-4" /><span>My Profile</span></Link>
+                        <Link to="/user/orders" onClick={() => setShowUserMenu(false)} className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50"><Package className="w-4 h-4" /><span>My Orders</span></Link>
+                        <Link to="/wishlist" onClick={() => setShowUserMenu(false)} className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50"><Heart className="w-4 h-4" /><span>My Wishlist</span></Link>
+                      </div>
+                      <div className="border-t">
+                        <button onClick={() => { setShowUserMenu(false); logout(); }} className="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full"><LogOut className="w-4 h-4" /><span>Logout</span></button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link to="/login" className="p-2">
+                  <User className="w-5 h-5 text-gray-700" />
+                </Link>
+              )}
             </div>
-          </div>
-        </div>
-
-        {/* Bottom Section - Page Title */}
-        <div className="bg-gradient-to-r from-purple-50 via-pink-50 to-purple-50">
-          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 py-6">
-            <h1 
-              className="text-[#111827] mb-1" 
-              style={{ 
-                fontFamily: 'Playfair Display, serif', 
-                fontSize: '32px', 
-                fontWeight: 700,
-                letterSpacing: '0.3px'
-              }}
-            >
-              Our Collection
-            </h1>
-            <p 
-              className="text-[#6B7280]" 
-              style={{ 
-                fontFamily: 'Inter, sans-serif', 
-                fontSize: '14px', 
-                fontWeight: 400 
-              }}
-            >
-              Discover premium products crafted for you
-            </p>
           </div>
         </div>
       </nav>
