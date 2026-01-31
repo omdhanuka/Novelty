@@ -299,7 +299,7 @@ export const getOrderById = async (req, res) => {
 export const updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id).populate('items.product');
 
     if (!order) {
       return res.status(404).json({
@@ -308,9 +308,34 @@ export const updateOrderStatus = async (req, res) => {
       });
     }
 
-    order.status = status;
-    if (status === 'Delivered') {
+    const previousStatus = order.orderStatus;
+    order.orderStatus = status;
+    
+    if (status === 'delivered') {
       order.deliveredAt = Date.now();
+      order.isDelivered = true;
+    }
+
+    // Restore stock if order is cancelled (support both 'cancelled' and 'Cancelled')
+    const isCancelled = status.toLowerCase() === 'cancelled';
+    const wasCancelled = previousStatus && previousStatus.toLowerCase() === 'cancelled';
+    
+    if (isCancelled && !wasCancelled) {
+      const Product = mongoose.model('Product');
+      
+      for (const item of order.items) {
+        const product = await Product.findById(item.product._id || item.product);
+        
+        if (product) {
+          // Add quantity back to stock
+          product.stock += item.quantity;
+          // Subtract from sold count
+          product.sold = Math.max(0, (product.sold || 0) - item.quantity);
+          await product.save();
+          
+          console.log(`✅ Admin cancelled - Restored ${item.quantity} units of ${product.name} to stock (new stock: ${product.stock})`);
+        }
+      }
     }
 
     await order.save();
@@ -318,6 +343,7 @@ export const updateOrderStatus = async (req, res) => {
     res.json({
       success: true,
       data: order,
+      message: status === 'cancelled' ? 'Order cancelled and stock restored' : 'Order status updated',
     });
   } catch (error) {
     console.error('Update order status error:', error);

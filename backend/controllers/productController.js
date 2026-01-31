@@ -84,12 +84,10 @@ export const getProducts = async (req, res) => {
 
     const total = await Product.countDocuments(query);
 
-    // Get filter options
-    const categoryIds = await Product.distinct('category', { status: 'active' });
+    // Get filter options - show all active categories (even if no products yet)
     const categories = await Category.find({ 
-      _id: { $in: categoryIds },
       status: 'ACTIVE' 
-    });
+    }).sort({ name: 1 });
 
     const availableColors = await Product.distinct('attributes.colors', { status: 'active' });
     const availableMaterials = await Product.distinct('attributes.material', { status: 'active' });

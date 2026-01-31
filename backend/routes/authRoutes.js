@@ -19,24 +19,6 @@ router.post('/forgot-password', forgotPassword);
 router.put('/reset-password/:resetToken', resetPassword);
 router.put('/update-password', protect, updatePassword);
 
-// Get current user (for auth check)
-router.get('/me', protect, async (req, res) => {
-  try {
-    res.json({ 
-      success: true, 
-      data: {
-        _id: req.user._id,
-        name: req.user.name,
-        email: req.user.email,
-        phone: req.user.phone,
-        role: req.user.role,
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
 // Get user profile
 router.get('/profile', protect, async (req, res) => {
   try {

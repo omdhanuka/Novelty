@@ -82,21 +82,25 @@ router.post('/orders/:id/cancel', protect, async (req, res) => {
     order.orderStatus = 'cancelled';
     await order.save();
 
-    // Restore product stock and update stock status
+    // Restore product stock and adjust sold count
     const Product = mongoose.model('Product');
     for (const item of order.items) {
       const product = await Product.findById(item.product);
       if (product) {
+        // Add quantity back to stock
         product.stock += item.quantity;
+        // Subtract from sold count
+        product.sold = Math.max(0, (product.sold || 0) - item.quantity);
         // Stock status will be auto-updated by the pre-save hook
         await product.save();
+        console.log(`✅ User cancelled - Restored ${item.quantity} units of ${product.name} to stock`);
       }
     }
 
     res.json({
       success: true,
       data: order,
-      message: 'Order cancelled successfully',
+      message: 'Order cancelled successfully and stock restored',
     });
   } catch (error) {
     res.status(500).json({

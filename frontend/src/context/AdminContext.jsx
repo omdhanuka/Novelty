@@ -17,10 +17,6 @@ export const AdminProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
   const checkAuth = async () => {
     try {
       const token = localStorage.getItem('adminToken');
@@ -37,13 +33,20 @@ export const AdminProvider = ({ children }) => {
         setUser(data.data);
       } else {
         localStorage.removeItem('adminToken');
+        setUser(null);
       }
     } catch (error) {
+      console.log('Admin auth check failed:', error.message);
       localStorage.removeItem('adminToken');
+      setUser(null);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    checkAuth();
+  }, []); // Empty dependency array to run only once on mount
 
   const login = async (email, password) => {
     const { data } = await api.post('/auth/login', { email, password });

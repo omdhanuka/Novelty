@@ -12,6 +12,11 @@ export const api = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
+    // Skip if Authorization header is already manually set
+    if (config.headers.Authorization) {
+      return config;
+    }
+    
     // Check if it's an admin request
     if (config.url?.startsWith('/admin')) {
       const adminToken = localStorage.getItem('adminToken');
@@ -34,8 +39,11 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Only redirect to admin login if it's an admin-related 401 error
-    if (error.response?.status === 401 && error.config?.url?.startsWith('/admin')) {
+    // Only redirect to admin login if it's an admin API route (not auth check) with 401 error
+    const isAdminRoute = error.config?.url?.startsWith('/admin/');
+    const hasAdminToken = localStorage.getItem('adminToken');
+    
+    if (error.response?.status === 401 && isAdminRoute && hasAdminToken) {
       localStorage.removeItem('adminToken');
       window.location.href = '/admin/login';
     }

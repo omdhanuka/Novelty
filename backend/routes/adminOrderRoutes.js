@@ -330,7 +330,7 @@ router.get('/:id', async (req, res) => {
 router.patch('/:id/status', auditLog('update_status', 'Order'), async (req, res) => {
   try {
     const { status, note } = req.body;
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id).populate('items.product');
 
     if (!order) {
       return res.status(404).json({
@@ -363,12 +363,32 @@ router.patch('/:id/status', auditLog('update_status', 'Order'), async (req, res)
       order.deliveredAt = new Date();
     }
 
+    // Restore stock if order is cancelled
+    const isCancelled = status.toLowerCase() === 'cancelled';
+    const wasCancelled = previousStatus && previousStatus.toLowerCase() === 'cancelled';
+    
+    if (isCancelled && !wasCancelled) {
+      for (const item of order.items) {
+        const product = await Product.findById(item.product._id || item.product);
+        
+        if (product) {
+          // Add quantity back to stock
+          product.stock += item.quantity;
+          // Subtract from sold count
+          product.sold = Math.max(0, (product.sold || 0) - item.quantity);
+          await product.save();
+          
+          console.log(`✅ Admin cancelled order ${order.orderNumber} - Restored ${item.quantity} units of ${product.name} (new stock: ${product.stock})`);
+        }
+      }
+    }
+
     await order.save();
 
     res.json({
       success: true,
       data: order,
-      message: 'Order status updated successfully',
+      message: status === 'cancelled' ? 'Order cancelled and stock restored successfully' : 'Order status updated successfully',
     });
   } catch (error) {
     res.status(400).json({
