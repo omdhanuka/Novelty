@@ -184,305 +184,291 @@ const MyOrders = () => {
 
   const getStatusBadge = (status) => {
     const key = (status || '').toString().toLowerCase();
-    const config = statusConfig[key] || { label: 'Unknown', color: 'bg-gray-100 text-gray-700 border-gray-200', icon: Package };
-    const Icon = config.icon || Package;
+    
+    const statusConfig = {
+      delivered: { color: 'text-green-600', dot: 'bg-green-600', label: 'Delivered' },
+      cancelled: { color: 'text-red-600', dot: 'bg-red-600', label: 'Cancelled' },
+      refunded: { color: 'text-orange-600', dot: 'bg-orange-600', label: 'Returned' },
+      placed: { color: 'text-blue-600', dot: 'bg-blue-600', label: 'Processing' },
+      confirmed: { color: 'text-blue-600', dot: 'bg-blue-600', label: 'Processing' },
+      packed: { color: 'text-blue-600', dot: 'bg-blue-600', label: 'Processing' },
+      processing: { color: 'text-blue-600', dot: 'bg-blue-600', label: 'Processing' },
+      shipped: { color: 'text-amber-600', dot: 'bg-amber-600', label: 'On the way' },
+      'in-transit': { color: 'text-amber-600', dot: 'bg-amber-600', label: 'On the way' },
+    };
+    
+    const config = statusConfig[key] || { color: 'text-gray-600', dot: 'bg-gray-600', label: 'Unknown' };
+    
     return (
-      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${config.color}`}>
-        <Icon size={16} />
-        {config.label}
-      </span>
+      <div className="flex items-center gap-2">
+        <span className={`w-2 h-2 rounded-full ${config.dot}`}></span>
+        <span className={`text-sm font-medium ${config.color}`} style={{ fontFamily: 'Inter, sans-serif' }}>
+          {config.label}
+        </span>
+      </div>
     );
   };
 
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-[#F7F8FC] py-8 md:py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Page Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-8"
-          >
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">My Orders</h1>
-            <p className="text-gray-600 text-base md:text-lg">Track & manage your orders</p>
-          </motion.div>
+      <div className="min-h-screen bg-[#F1F3F6] py-6">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex gap-6">
+            {/* Left Sidebar - Filters */}
+            <div className="hidden lg:block w-64 shrink-0">
+              <div className="bg-white rounded-sm shadow-sm p-5 sticky top-6">
+                <h2 className="text-lg font-medium text-gray-900 mb-6" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  Filters
+                </h2>
 
-          {loading ? (
-            <div className="flex justify-center items-center py-20">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200 border-t-indigo-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading your orders...</p>
-              </div>
-            </div>
-          ) : (
-            <>
-              {/* Filters - Sticky on Mobile */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="sticky top-0 z-10 bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-6 mb-6"
-              >
-                <div className="flex flex-col md:flex-row gap-4">
-                  {/* Search */}
-                  <div className="flex-1">
-                    <div className="relative">
-                      <Search size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <input
-                        type="text"
-                        placeholder="Search by Order ID..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Status Filter */}
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Filter size={20} />
-                      <span className="text-sm font-medium hidden sm:inline">Filter:</span>
-                    </div>
-                    <select
-                      value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value)}
-                      className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white font-medium text-gray-700 min-w-[150px] transition-all"
-                    >
-                      <option value="all">All Orders</option>
-                      <option value="placed">Placed</option>
-                      <option value="shipped">Shipped</option>
-                      <option value="delivered">Delivered</option>
-                      <option value="cancelled">Cancelled</option>
-                      <option value="refunded">Returned</option>
-                    </select>
+                {/* Order Status Filter */}
+                <div className="mb-6">
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase mb-3" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    ORDER STATUS
+                  </h3>
+                  <div className="space-y-2.5">
+                    {[
+                      { value: 'all', label: 'All Orders' },
+                      { value: 'placed', label: 'Processing' },
+                      { value: 'shipped', label: 'On the way' },
+                      { value: 'delivered', label: 'Delivered' },
+                      { value: 'cancelled', label: 'Cancelled' },
+                      { value: 'refunded', label: 'Returned' },
+                    ].map((status) => (
+                      <label key={status.value} className="flex items-center cursor-pointer group">
+                        <input
+                          type="radio"
+                          name="statusFilter"
+                          value={status.value}
+                          checked={statusFilter === status.value}
+                          onChange={(e) => setStatusFilter(e.target.value)}
+                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                        />
+                        <span className="ml-3 text-sm text-gray-700 group-hover:text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
+                          {status.label}
+                        </span>
+                      </label>
+                    ))}
                   </div>
                 </div>
-              </motion.div>
 
-              {/* Orders List */}
+                {/* Order Time Filter */}
+                <div>
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase mb-3" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    ORDER TIME
+                  </h3>
+                  <div className="space-y-2.5">
+                    {[
+                      { value: 'all', label: 'Anytime' },
+                      { value: '30', label: 'Last 30 days' },
+                      { value: '2024', label: '2024' },
+                      { value: '2023', label: '2023' },
+                      { value: 'older', label: 'Older' },
+                    ].map((time) => (
+                      <label key={time.value} className="flex items-center cursor-pointer group">
+                        <input
+                          type="radio"
+                          name="timeFilter"
+                          value={time.value}
+                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                        />
+                        <span className="ml-3 text-sm text-gray-700 group-hover:text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
+                          {time.label}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Main Content Area */}
+            <div className="flex-1">
+              {/* Search Bar */}
+              <div className="bg-white rounded-sm shadow-sm p-5 mb-4">
+                <div className="relative">
+                  <Search size={18} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search your orders here"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-11 pr-4 py-2.5 border border-gray-300 rounded text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-gray-400"
+                    style={{ fontFamily: 'Inter, sans-serif' }}
+                  />
+                </div>
+              </div>
+
+              {loading ? (
+                <div className="bg-white rounded-sm shadow-sm p-20 text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    Loading your orders...
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {/* Orders List */}
               <AnimatePresence mode="wait">
                 {filteredOrders.length === 0 ? (
                   <motion.div
                     key="empty"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.2 }}
-                    className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 md:p-16 text-center"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="bg-white rounded-sm shadow-sm p-16 text-center"
                   >
-                    <div className="max-w-md mx-auto">
-                      <div className="bg-gray-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <Package size={48} className="text-gray-400" />
-                      </div>
-                      <h3 className="text-2xl font-bold text-gray-900 mb-3">No orders found</h3>
-                      <p className="text-gray-600 mb-8 text-lg">
-                        {searchQuery || statusFilter !== 'all'
-                          ? 'Try adjusting your search or filters'
-                          : "You haven't placed any orders yet"}
-                      </p>
-                      {!searchQuery && statusFilter === 'all' && (
-                        <Link
-                          to="/products"
-                          className="inline-flex items-center gap-2 px-8 py-4 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-semibold shadow-lg shadow-indigo-200"
-                        >
-                          Start Shopping
-                          <ChevronRight size={20} />
-                        </Link>
-                      )}
-                    </div>
+                    <Package size={64} className="text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-medium text-gray-900 mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      No orders found
+                    </h3>
+                    <p className="text-gray-600 mb-6" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      {searchQuery || statusFilter !== 'all'
+                        ? 'Try adjusting your search or filters'
+                        : "You haven't placed any orders yet"}
+                    </p>
+                    {!searchQuery && statusFilter === 'all' && (
+                      <Link
+                        to="/products"
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm font-medium"
+                        style={{ fontFamily: 'Inter, sans-serif' }}
+                      >
+                        Start Shopping
+                      </Link>
+                    )}
                   </motion.div>
                 ) : (
                   <div className="space-y-4">
-                    {filteredOrders.map((order, index) => (
+                    {filteredOrders.map((order, orderIndex) => (
                       <motion.div
-                        key={order.id || order.orderNumber || index}
-                        initial={{ opacity: 0, y: 20 }}
+                        key={order.id || order.orderNumber || orderIndex}
+                        initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ delay: index * 0.05 }}
-                        className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
+                        exit={{ opacity: 0 }}
+                        transition={{ delay: orderIndex * 0.05 }}
+                        className="bg-white rounded-sm shadow-sm overflow-hidden"
                       >
-                        {/* Order Header */}
-                        <div className="p-6 border-b border-gray-100">
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                            <div className="flex items-start gap-4">
-                              <div className="w-14 h-14 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                                <Package size={28} className="text-indigo-600" />
-                              </div>
-                              <div>
-                                <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-1">
-                                  #{order.orderNumber}
-                                </h3>
-                                <p className="text-sm text-gray-500 flex items-center gap-1.5">
-                                  <Clock size={14} />
-                                  {new Date(order.date).toLocaleDateString('en-IN', {
-                                    day: 'numeric',
-                                    month: 'short',
-                                    year: 'numeric',
-                                  })}
-                                </p>
-                              </div>
+                        {/* Order Products - Each as a row */}
+                        {order.products.map((product, productIndex) => (
+                          <div
+                            key={productIndex}
+                            className={`flex gap-6 p-5 ${
+                              productIndex < order.products.length - 1 ? 'border-b border-gray-100' : ''
+                            }`}
+                          >
+                            {/* Product Image */}
+                            <div className="w-24 h-24 shrink-0">
+                              <img
+                                src={product.image}
+                                alt={product.name}
+                                className="w-full h-full object-cover border border-gray-200"
+                                onError={(e) => {
+                                  const placeholderSvg =
+                                    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23f3f4f6' width='200' height='200'/%3E%3Cg transform='translate(100 100)'%3E%3Crect x='-30' y='-45' width='60' height='60' fill='%23d1d5db' rx='3'/%3E%3Ccircle cx='0' cy='-25' r='8' fill='%239ca3af'/%3E%3Cpath d='M -18 -12 L -8 -22 L 3 -12 L 18 -25 L 18 0 L -18 0 Z' fill='%239ca3af'/%3E%3C/g%3E%3Ctext fill='%236b7280' font-family='Arial' font-size='12' x='100' y='140' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E";
+                                  if (!e.target.src.startsWith('data:image')) {
+                                    e.target.src = placeholderSvg;
+                                  }
+                                }}
+                              />
                             </div>
-                            <div className="flex flex-col sm:items-end gap-2">
-                              {getStatusBadge(order.status)}
-                              <p className="text-xl md:text-2xl font-bold text-gray-900">
-                                ₹{(order.total || 0).toLocaleString('en-IN')}
+
+                            {/* Product Info */}
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-base font-normal text-gray-900 mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                {product.name}
+                              </h3>
+                              <p className="text-sm text-gray-500" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                Qty: {product.qty}
+                              </p>
+                              <p className="text-base font-medium text-gray-900 mt-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                ₹{product.price.toLocaleString('en-IN')}
                               </p>
                             </div>
-                          </div>
-                        </div>
 
-                        {/* Order Items */}
-                        <div className="p-6 bg-gradient-to-br from-gray-50 to-white">
-                          <div className="space-y-3">
-                            {order.products.slice(0, 3).map((product, idx) => (
-                              <div key={idx} className="flex items-center gap-4 p-3 rounded-xl bg-white border border-gray-100">
-                                <div className="w-16 h-16 md:w-20 md:h-20 shrink-0">
-                                  <img
-                                    src={product.image}
-                                    alt={product.name}
-                                    className="w-full h-full object-cover rounded-lg border-2 border-gray-200"
-                                    onError={(e) => {
-                                      const placeholderSvg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23f3f4f6' width='200' height='200'/%3E%3Cg transform='translate(100 100)'%3E%3Crect x='-30' y='-45' width='60' height='60' fill='%23d1d5db' rx='3'/%3E%3Ccircle cx='0' cy='-25' r='8' fill='%239ca3af'/%3E%3Cpath d='M -18 -12 L -8 -22 L 3 -12 L 18 -25 L 18 0 L -18 0 Z' fill='%239ca3af'/%3E%3C/g%3E%3Ctext fill='%236b7280' font-family='Arial' font-size='12' x='100' y='140' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E";
-                                      if (!e.target.src.startsWith('data:image')) {
-                                        e.target.src = placeholderSvg;
-                                      }
-                                    }}
-                                  />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-semibold text-gray-900 truncate text-sm md:text-base">
-                                    {product.name}
-                                  </p>
-                                  <p className="text-sm text-gray-500 mt-1">
-                                    Qty: <span className="font-medium text-gray-700">{product.qty}</span>
-                                  </p>
-                                </div>
-                                <p className="font-bold text-gray-900 shrink-0 text-sm md:text-base">
-                                  ₹{product.price.toLocaleString('en-IN')}
-                                </p>
+                            {/* Status & Actions */}
+                            <div className="flex flex-col items-end justify-start shrink-0" style={{ minWidth: '280px' }}>
+                              {/* Status */}
+                              <div className="mb-2">
+                                {getStatusBadge(order.status)}
                               </div>
-                            ))}
-                            {order.products.length > 3 && (
-                              <p className="text-sm text-gray-500 text-center py-2">
-                                +{order.products.length - 3} more item{order.products.length - 3 > 1 ? 's' : ''}
+                              
+                              {/* Status Message */}
+                              <p className="text-xs text-gray-500 mb-3" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                {(order.status || '').toLowerCase() === 'delivered'
+                                  ? 'Your item has been delivered'
+                                  : (order.status || '').toLowerCase() === 'cancelled'
+                                  ? 'Your order has been cancelled'
+                                  : (order.status || '').toLowerCase() === 'refunded'
+                                  ? 'Your order has been returned'
+                                  : 'Your order is being processed'}
                               </p>
-                            )}
-                          </div>
-                        </div>
 
-                        {/* Order Actions */}
-                        <div className="p-6 border-t border-gray-100 bg-white">
-                          <div className="flex flex-col sm:flex-row gap-3">
-                            {order.id ? (
-                              <Link
-                                to={`/account/orders/${order.id}`}
-                                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all font-semibold shadow-lg shadow-indigo-200 hover:shadow-xl"
-                              >
-                                <Eye size={20} />
-                                View Details
-                              </Link>
-                            ) : (
-                              <div className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 text-gray-400 rounded-xl cursor-not-allowed">
-                                <Eye size={20} />
-                                View Details
-                              </div>
-                            )}
-                            
-                            {(order.status === 'delivered' || order.status === 'Delivered') && (
-                              <>
-                                <button className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all font-semibold">
-                                  Write Review
-                                </button>
-                                <button className="flex-1 px-6 py-3 border-2 border-indigo-600 text-indigo-600 rounded-xl hover:bg-indigo-50 transition-all font-semibold">
-                                  Buy Again
-                                </button>
-                              </>
-                            )}
-                            
-                            {(order.status === 'shipped' || order.status === 'in-transit') && (
-                              <button className="flex-1 px-6 py-3 border-2 border-purple-600 text-purple-600 rounded-xl hover:bg-purple-50 transition-all font-semibold">
-                                <Truck size={18} className="inline mr-2" />
-                                Track Order
-                              </button>
-                            )}
-                            
-                            {isCancellable(order.status) && (
-                              <button
-                                onClick={() => handleCancelOrder(order.id)}
-                                disabled={cancelingId === order.id}
-                                className={`flex-1 px-6 py-3 border-2 border-red-600 text-red-600 rounded-xl hover:bg-red-50 transition-all font-semibold ${
-                                  cancelingId === order.id ? 'opacity-50 cursor-not-allowed' : ''
-                                }`}
-                                title={cancelingId === order.id ? 'Cancelling...' : ''}
-                              >
-                                <Ban size={18} className="inline mr-2" />
-                                {cancelingId === order.id ? 'Cancelling...' : 'Cancel Order'}
-                              </button>
-                            )}
+                              {/* Action Buttons - Show for first product only */}
+                              {productIndex === 0 && (
+                                <div className="flex flex-col gap-1.5 items-end">
+                                  {(order.status || '').toLowerCase() === 'delivered' && (
+                                    <button className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                                      <span style={{ fontFamily: 'Inter, sans-serif' }}>⭐ Rate & Review</span>
+                                    </button>
+                                  )}
+
+                                  {order.id && (
+                                    <Link
+                                      to={`/account/orders/${order.id}`}
+                                      className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                                      style={{ fontFamily: 'Inter, sans-serif' }}
+                                    >
+                                      View Details
+                                    </Link>
+                                  )}
+
+                                  {(order.status === 'shipped' || order.status === 'in-transit') && (
+                                    <Link
+                                      to={`/account/orders/${order.id}/track`}
+                                      className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                                      style={{ fontFamily: 'Inter, sans-serif' }}
+                                    >
+                                      Track Order
+                                    </Link>
+                                  )}
+
+                                  {isCancellable(order.status) && (
+                                    <button
+                                      onClick={() => handleCancelOrder(order.id)}
+                                      disabled={cancelingId === order.id}
+                                      className={`text-sm text-red-600 hover:text-red-800 font-medium ${
+                                        cancelingId === order.id ? 'opacity-50 cursor-not-allowed' : ''
+                                      }`}
+                                      style={{ fontFamily: 'Inter, sans-serif' }}
+                                    >
+                                      {cancelingId === order.id ? 'Cancelling...' : 'Cancel Order'}
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           </div>
+                        ))}
+
+                        {/* Order Footer - Total */}
+                        <div className="bg-gray-50 px-5 py-3 border-t border-gray-200 flex items-center justify-between">
+                          <span className="text-sm text-gray-600" style={{ fontFamily: 'Inter, sans-serif' }}>
+                            Order #{order.orderNumber}
+                          </span>
+                          <span className="text-base font-semibold text-gray-900" style={{ fontFamily: 'Inter, sans-serif' }}>
+                            Total: ₹{(order.total || 0).toLocaleString('en-IN')}
+                          </span>
                         </div>
                       </motion.div>
                     ))}
                   </div>
                 )}
               </AnimatePresence>
-
-              {/* Order Stats */}
-              {filteredOrders.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="mt-8 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8"
-                >
-                  <h3 className="text-xl font-bold text-gray-900 mb-6">Order Summary</h3>
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div className="text-center p-4 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-100">
-                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <Package size={24} className="text-gray-600" />
-                      </div>
-                      <p className="text-3xl font-bold text-gray-900 mb-1">{normalizedOrders.length}</p>
-                      <p className="text-sm text-gray-500 font-medium">Total Orders</p>
-                    </div>
-                    <div className="text-center p-4 bg-gradient-to-br from-green-50 to-white rounded-xl border border-green-100">
-                      <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <CheckCircle size={24} className="text-green-600" />
-                      </div>
-                      <p className="text-3xl font-bold text-green-600 mb-1">
-                        {normalizedOrders.filter((o) => (o.status || '').toString().toLowerCase() === 'delivered').length}
-                      </p>
-                      <p className="text-sm text-gray-500 font-medium">Delivered</p>
-                    </div>
-                    <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-white rounded-xl border border-purple-100">
-                      <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <Truck size={24} className="text-purple-600" />
-                      </div>
-                      <p className="text-3xl font-bold text-purple-600 mb-1">
-                        {normalizedOrders.filter((o) => {
-                          const status = (o.status || '').toString().toLowerCase();
-                          return status === 'shipped' || status === 'in-transit';
-                        }).length}
-                      </p>
-                      <p className="text-sm text-gray-500 font-medium">In Transit</p>
-                    </div>
-                    <div className="text-center p-4 bg-gradient-to-br from-indigo-50 to-white rounded-xl border border-indigo-100">
-                      <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <span className="text-xl font-bold text-indigo-600">₹</span>
-                      </div>
-                      <p className="text-3xl font-bold text-indigo-600 mb-1">
-                        ₹{normalizedOrders.reduce((sum, o) => sum + (o.total || 0), 0).toLocaleString('en-IN')}
-                      </p>
-                      <p className="text-sm text-gray-500 font-medium">Total Spent</p>
-                    </div>
-                  </div>
-                </motion.div>
+                </>
               )}
-            </>
-          )}
+            </div>
+          </div>
         </div>
       </div>
       <Footer />

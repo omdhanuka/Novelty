@@ -18,6 +18,7 @@ import UserProfilePage from './pages/user/UserProfilePage';
 import AddressManagement from './pages/user/AddressManagement';
 import MyOrders from './pages/user/MyOrders';
 import OrderDetails from './pages/user/OrderDetails';
+import TrackOrder from './pages/user/TrackOrder';
 import Wishlist from './pages/user/Wishlist';
 import Cart from './pages/user/Cart';
 import Checkout from './pages/user/Checkout';
@@ -105,6 +106,7 @@ function App() {
                 <Route index element={<UserProfilePage />} />
                 <Route path="orders" element={<MyOrders />} />
                 <Route path="orders/:orderId" element={<OrderDetails />} />
+                <Route path="orders/:orderId/track" element={<TrackOrder />} />
                 <Route path="addresses" element={<AddressManagement />} />
                 <Route path="wishlist" element={<Wishlist />} />
                 <Route path="profile" element={<UserProfilePage />} />
