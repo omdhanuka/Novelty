@@ -94,24 +94,15 @@ function App() {
                 }
               />
 
-              {/* Account area with nested user layout (keeps legacy /account/* links working) */}
-              <Route
-                path="/account"
-                element={
-                  <ProtectedRoute>
-                    <UserLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<UserProfilePage />} />
-                <Route path="orders" element={<MyOrders />} />
-                <Route path="orders/:orderId" element={<OrderDetails />} />
-                <Route path="orders/:orderId/track" element={<TrackOrder />} />
-                <Route path="addresses" element={<AddressManagement />} />
-                <Route path="wishlist" element={<Wishlist />} />
-                <Route path="profile" element={<UserProfilePage />} />
-                <Route path="change-password" element={<ChangePassword />} />
-              </Route>
+              {/* Account area routes without sidebar layout */}
+              <Route path="/account" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
+              <Route path="/account/orders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
+              <Route path="/account/orders/:orderId" element={<ProtectedRoute><OrderDetails /></ProtectedRoute>} />
+              <Route path="/account/orders/:orderId/track" element={<ProtectedRoute><TrackOrder /></ProtectedRoute>} />
+              <Route path="/account/addresses" element={<ProtectedRoute><AddressManagement /></ProtectedRoute>} />
+              <Route path="/account/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
+              <Route path="/account/profile" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
+              <Route path="/account/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
               <Route
                 path="/wishlist"
                 element={
