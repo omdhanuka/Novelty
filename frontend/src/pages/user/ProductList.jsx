@@ -248,8 +248,8 @@ const ProductList = () => {
                         <p className="text-xs text-gray-600 truncate">{user.email}</p>
                       </div>
                       <div className="py-1">
-                        <Link to="/user/profile" onClick={() => setShowUserMenu(false)} className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50"><User className="w-4 h-4" /><span>My Profile</span></Link>
-                        <Link to="/user/orders" onClick={() => setShowUserMenu(false)} className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50"><Package className="w-4 h-4" /><span>My Orders</span></Link>
+                        <Link to="/profile" onClick={() => setShowUserMenu(false)} className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50"><User className="w-4 h-4" /><span>My Profile</span></Link>
+                        <Link to="/orders" onClick={() => setShowUserMenu(false)} className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50"><Package className="w-4 h-4" /><span>My Orders</span></Link>
                         <Link to="/wishlist" onClick={() => setShowUserMenu(false)} className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50"><Heart className="w-4 h-4" /><span>My Wishlist</span></Link>
                       </div>
                       <div className="border-t">
