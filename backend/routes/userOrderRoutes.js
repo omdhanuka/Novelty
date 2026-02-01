@@ -72,10 +72,12 @@ router.post('/orders/:id/cancel', protect, async (req, res) => {
       });
     }
 
-    if (order.orderStatus !== 'pending' && order.orderStatus !== 'processing') {
+    // Only allow cancellation for early-stage orders (not yet shipped)
+    const cancellableStatuses = ['placed', 'confirmed'];
+    if (!cancellableStatuses.includes(order.orderStatus)) {
       return res.status(400).json({
         success: false,
-        message: 'Order cannot be cancelled at this stage',
+        message: `Order cannot be cancelled at '${order.orderStatus}' stage. Only orders in 'placed' or 'confirmed' status can be cancelled.`,
       });
     }
 
