@@ -10,7 +10,7 @@ import {
   AlertCircle,
   CheckCircle
 } from 'lucide-react';
-import { api } from '../../lib/api';
+import { adminAPI } from '../../lib/api';
 
 const AdminSettings = () => {
   const [activeTab, setActiveTab] = useState('store');
@@ -79,9 +79,22 @@ const AdminSettings = () => {
 
   const fetchSettings = async () => {
     try {
-      const response = await api.adminSettings.get();
-      if (response.data.success) {
-        setSettings(response.data.data || settings);
+      const response = await adminAPI.settings.get();
+      if (response.data.success && response.data.data) {
+        // Merge fetched settings with default settings to ensure all nested objects exist
+        setSettings(prev => ({
+          ...prev,
+          ...response.data.data,
+          storeAddress: { ...prev.storeAddress, ...response.data.data.storeAddress },
+          gst: { ...prev.gst, ...response.data.data.gst },
+          businessHours: { ...prev.businessHours, ...response.data.data.businessHours },
+          shipping: { ...prev.shipping, ...response.data.data.shipping },
+          razorpay: { ...prev.razorpay, ...response.data.data.razorpay },
+          emailSettings: { ...prev.emailSettings, ...response.data.data.emailSettings },
+          seo: { ...prev.seo, ...response.data.data.seo },
+          socialMedia: { ...prev.socialMedia, ...response.data.data.socialMedia },
+          invoiceSettings: { ...prev.invoiceSettings, ...response.data.data.invoiceSettings }
+        }));
       }
     } catch (error) {
       console.error('Error fetching settings:', error);
@@ -95,7 +108,7 @@ const AdminSettings = () => {
     setMessage(null);
     
     try {
-      const response = await api.adminSettings.update(settings);
+      const response = await adminAPI.settings.update(settings);
       if (response.data.success) {
         setMessage({ type: 'success', text: 'Settings saved successfully!' });
         setTimeout(() => setMessage(null), 3000);
