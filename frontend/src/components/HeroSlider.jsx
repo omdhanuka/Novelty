@@ -1,8 +1,68 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { contentAPI } from '../lib/api';
 
 const HeroSlider = () => {
+  const [slides, setSlides] = useState([]);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSlides = async () => {
+      try {
+        const response = await contentAPI.getHomeContent();
+        if (response.data.success && response.data.data.heroSlides?.length > 0) {
+          setSlides(response.data.data.heroSlides);
+        } else {
+          // Fallback to default content
+          setSlides([{
+            title: 'Carry Confidence.',
+            subtitle: 'Premium Bags for Every Journey',
+            description: 'Premium bags designed for travel, weddings, and daily elegance. Crafted with attention to detail, made to last.',
+            buttonText: 'Shop Collection',
+            buttonLink: '/products',
+            image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&q=80'
+          }]);
+        }
+      } catch (error) {
+        console.error('Error fetching hero slides:', error);
+        // Use default content on error
+        setSlides([{
+          title: 'Carry Confidence.',
+          subtitle: 'Premium Bags for Every Journey',
+          description: 'Premium bags designed for travel, weddings, and daily elegance. Crafted with attention to detail, made to last.',
+          buttonText: 'Shop Collection',
+          buttonLink: '/products',
+          image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&q=80'
+        }]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSlides();
+  }, []);
+
+  useEffect(() => {
+    if (slides.length > 1) {
+      const timer = setInterval(() => {
+        setCurrentSlide((prev) => (prev + 1) % slides.length);
+      }, 5000);
+      return () => clearInterval(timer);
+    }
+  }, [slides.length]);
+
+  const slide = slides[currentSlide] || slides[0];
+
+  if (loading || !slide) {
+    return (
+      <section className="relative min-h-[85vh] bg-beige-200 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-navy-950"></div>
+      </section>
+    );
+  }
+
   return (
     <section className="relative min-h-[85vh] bg-beige-200 overflow-hidden">
       {/* Subtle background texture */}
@@ -33,17 +93,19 @@ const HeroSlider = () => {
 
             {/* Main Heading */}
             <motion.div
+              key={currentSlide}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.8 }}
             >
               <h1 className="font-heading text-6xl md:text-7xl lg:text-8xl text-navy-950 leading-[1.05] mb-6">
-                Carry<br />
-                <span className="text-gold-600">Confidence.</span>
+                {slide.title}
               </h1>
-              <p className="text-2xl md:text-3xl text-navy-700 font-light mb-4">
-                Premium Bags for Every Journey.
-              </p>
+              {slide.subtitle && (
+                <p className="text-2xl md:text-3xl text-navy-700 font-light mb-4">
+                  {slide.subtitle}
+                </p>
+              )}
               <p className="text-base text-navy-500 flex items-center gap-2">
                 ✨ Trusted by 5,000+ happy customers across India
               </p>
@@ -51,40 +113,43 @@ const HeroSlider = () => {
 
             {/* Description */}
             <motion.p
+              key={`desc-${currentSlide}`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.8 }}
               className="text-lg md:text-xl text-navy-600 max-w-xl leading-relaxed"
             >
-              Premium bags designed for travel, weddings, and daily elegance. 
-              Crafted with attention to detail, made to last.
+              {slide.description || 'Premium bags designed for travel, weddings, and daily elegance.'}
             </motion.p>
 
             {/* CTA Buttons */}
             <motion.div
+              key={`cta-${currentSlide}`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7, duration: 0.8 }}
               className="flex flex-col sm:flex-row gap-4 pt-4"
             >
-              <Link to="/products">
-                <motion.button
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="group px-8 py-4 bg-navy-950 text-black rounded-full font-semibold text-lg flex items-center justify-center gap-2 shadow-lg hover:shadow-2xl transition-all duration-300"
-                >
-                  Shop Collection
-                  <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} />
-                </motion.button>
-              </Link>
+              {slide.buttonText && slide.buttonLink && (
+                <Link to={slide.buttonLink}>
+                  <motion.button
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="group px-8 py-4 bg-navy-950 text-black rounded-full font-semibold text-lg flex items-center justify-center gap-2 shadow-lg hover:shadow-2xl transition-all duration-300"
+                  >
+                    {slide.buttonText}
+                    <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} />
+                  </motion.button>
+                </Link>
+              )}
               
-              <Link to="/category/wedding-collection">
+              <Link to="/products">
                 <motion.button
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
                   className="group px-8 py-4 bg-white text-navy-950 rounded-full font-semibold text-lg flex items-center justify-center gap-2 border-2 border-navy-950 hover:bg-navy-950 hover:text-gray-900 transition-all duration-300"
                 >
-                  Wedding Collection
+                  Browse All
                   <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} />
                 </motion.button>
               </Link>
@@ -132,13 +197,15 @@ const HeroSlider = () => {
           >
             {/* Main Featured Bag */}
             <motion.div
-              animate={{ y: [0, -15, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+              key={`img-${currentSlide}`}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1, y: [0, -15, 0] }}
+              transition={{ opacity: { duration: 0.5 }, scale: { duration: 0.5 }, y: { duration: 4, repeat: Infinity, ease: 'easeInOut' } }}
               className="absolute top-0 right-0 w-80 h-80 rounded-3xl overflow-hidden shadow-2xl z-20 border-4 border-white"
             >
               <img
-                src="https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&q=80"
-                alt="Premium Handbag"
+                src={slide.image || "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&q=80"}
+                alt={slide.title}
                 className="w-full h-full object-cover"
               />
             </motion.div>

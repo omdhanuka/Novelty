@@ -152,4 +152,39 @@ export const adminAPI = {
     get: () => api.get('/admin/settings'),
     update: (data) => api.put('/admin/settings', data),
   },
+  
+  // Content Management
+  content: {
+    get: () => api.get('/admin/content'),
+    updateSections: (data) => api.put('/admin/content/sections', data),
+    
+    // Hero Slides
+    addHeroSlide: (data) => api.post('/admin/content/hero', data),
+    updateHeroSlide: (id, data) => api.put(`/admin/content/hero/${id}`, data),
+    deleteHeroSlide: (id) => api.delete(`/admin/content/hero/${id}`),
+    reorderHeroSlides: (orderedIds) => api.put('/admin/content/hero/reorder', { orderedIds }),
+    
+    // Banners
+    addBanner: (data) => api.post('/admin/content/banner', data),
+    updateBanner: (id, data) => api.put(`/admin/content/banner/${id}`, data),
+    deleteBanner: (id) => api.delete(`/admin/content/banner/${id}`),
+    
+    // Brand Story
+    updateBrandStory: (data) => api.put('/admin/content/brand-story', data),
+    
+    // Testimonials
+    addTestimonial: (data) => api.post('/admin/content/testimonial', data),
+    updateTestimonial: (id, data) => api.put(`/admin/content/testimonial/${id}`, data),
+    deleteTestimonial: (id) => api.delete(`/admin/content/testimonial/${id}`),
+    
+    // Features
+    addFeature: (data) => api.post('/admin/content/feature', data),
+    updateFeature: (id, data) => api.put(`/admin/content/feature/${id}`, data),
+    deleteFeature: (id) => api.delete(`/admin/content/feature/${id}`),
+  },
+};
+
+// Public Content API
+export const contentAPI = {
+  getHomeContent: () => api.get('/content'),
 };

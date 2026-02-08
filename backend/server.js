@@ -26,6 +26,8 @@ import adminCustomerRoutes from './routes/adminCustomerRoutes.js';
 import adminCategoryRoutes from './routes/adminCategoryRoutes.js';
 import adminSettingsRoutes from './routes/adminSettingsRoutes.js';
 import adminUserRoutes from './routes/adminUserRoutes.js';
+import adminContentRoutes from './routes/adminContentRoutes.js';
+import contentRoutes from './routes/contentRoutes.js';
 
 const app = express();
 
@@ -45,6 +47,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/content', contentRoutes);
 
 // User routes
 app.use('/api/user', userOrderRoutes);
@@ -60,6 +63,7 @@ app.use('/api/admin/customers', adminCustomerRoutes);
 app.use('/api/admin/categories', adminCategoryRoutes);
 app.use('/api/admin/settings', adminSettingsRoutes);
 app.use('/api/admin/users', adminUserRoutes);
+app.use('/api/admin/content', adminContentRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

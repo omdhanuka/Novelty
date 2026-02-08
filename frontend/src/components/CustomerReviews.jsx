@@ -1,53 +1,60 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Star, Quote, ThumbsUp } from 'lucide-react';
+import { contentAPI } from '../lib/api';
 
 const CustomerReviews = () => {
-  const reviews = [
-    {
-      id: 1,
-      name: 'Priya Malhotra',
-      location: 'Rohini, Delhi',
-      rating: 5,
-      review: 'Absolutely loved my Heritage Leather Tote! I carry it to my office daily and it\'s both stylish and practical. The quality is exceptional - no wear even after 6 months of daily use.',
-      product: 'Heritage Leather Tote',
-      image: 'https://i.pravatar.cc/150?img=1',
-      date: '2 weeks ago',
-      verified: true,
-    },
-    {
-      id: 2,
-      name: 'Kavita Sharma',
-      location: 'Raipur, Chhattisgarh',
-      rating: 5,
-      review: 'The Royal Bridal Potli I ordered for my wedding was a showstopper! Every guest asked where I got it from. The golden embroidery was breathtaking. Thank you Bagvo!',
-      product: 'Royal Bridal Potli',
-      image: 'https://i.pravatar.cc/150?img=5',
-      date: '1 month ago',
-      verified: true,
-    },
-    {
-      id: 3,
-      name: 'Raj Kumar',
-      location: 'Andheri, Mumbai',
-      rating: 5,
-      review: 'Ordered the Executive Pro Backpack for my work-from-office days. Fits my laptop, water bottle, and files perfectly. The build quality is amazing for the price!',
-      product: 'Executive Pro Backpack',
-      image: 'https://i.pravatar.cc/150?img=12',
-      date: '3 weeks ago',
-      verified: true,
-    },
-    {
-      id: 4,
-      name: 'Sneha Iyer',
-      location: 'Koramangala, Bangalore',
-      rating: 5,
-      review: 'My Radiance Sling Bag is now my everyday companion - shopping, outings, movie nights. The crossbody style is super comfortable and the color is gorgeous. Highly recommend!',
-      product: 'Radiance Sling Bag',
-      image: 'https://i.pravatar.cc/150?img=9',
-      date: '1 week ago',
-      verified: true,
-    },
-  ];
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      try {
+        const response = await contentAPI.getHomeContent();
+        if (response.data.success && response.data.data.testimonials?.length > 0) {
+          setReviews(response.data.data.testimonials);
+        } else {
+          // Fallback to default reviews
+          setReviews([
+            {
+              _id: '1',
+              customerName: 'Priya Malhotra',
+              location: 'Rohini, Delhi',
+              rating: 5,
+              review: 'Absolutely loved my Heritage Leather Tote! I carry it to my office daily and it\'s both stylish and practical. The quality is exceptional - no wear even after 6 months of daily use.',
+              customerImage: 'https://i.pravatar.cc/150?img=1',
+            },
+            {
+              _id: '2',
+              customerName: 'Kavita Sharma',
+              location: 'Raipur, Chhattisgarh',
+              rating: 5,
+              review: 'The Royal Bridal Potli I ordered for my wedding was a showstopper! Every guest asked where I got it from. The golden embroidery was breathtaking. Thank you Bagvo!',
+              customerImage: 'https://i.pravatar.cc/150?img=5',
+            },
+          ]);
+        }
+      } catch (error) {
+        console.error('Error fetching testimonials:', error);
+        setReviews([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTestimonials();
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="py-20 bg-gradient-to-b from-white to-slate-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-600"></div>
+      </section>
+    );
+  }
+
+  if (reviews.length === 0) {
+    return null;
+  }
 
   return (
     <section className="py-20 bg-gradient-to-b from-white to-slate-50 relative overflow-hidden">
@@ -79,7 +86,7 @@ const CustomerReviews = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
           {reviews.map((review, index) => (
             <motion.div
-              key={review.id}
+              key={review._id}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -94,14 +101,12 @@ const CustomerReviews = () => {
               <div className="relative z-10">
                 {/* Rating Stars */}
                 <div className="flex items-center gap-1 mb-6">
-                  {[...Array(review.rating)].map((_, i) => (
+                  {[...Array(review.rating || 5)].map((_, i) => (
                     <Star key={i} size={20} className="fill-amber-400 text-amber-400" />
                   ))}
-                  {review.verified && (
-                    <span className="ml-2 px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
-                      ✓ Verified Purchase
-                    </span>
-                  )}
+                  <span className="ml-2 px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
+                    ✓ Verified
+                  </span>
                 </div>
 
                 {/* Review Text */}
@@ -109,23 +114,23 @@ const CustomerReviews = () => {
                   "{review.review}"
                 </p>
 
-                {/* Product Name */}
-                <div className="inline-block px-4 py-2 bg-slate-100 rounded-lg mb-6">
-                  <p className="text-slate-600 text-sm font-semibold">{review.product}</p>
-                </div>
-
                 {/* Reviewer Info */}
                 <div className="flex items-center gap-4 pt-6 border-t border-slate-100">
-                  <img
-                    src={review.image}
-                    alt={review.name}
-                    className="w-14 h-14 rounded-full object-cover ring-4 ring-amber-100"
-                  />
+                  {review.customerImage ? (
+                    <img
+                      src={review.customerImage}
+                      alt={review.customerName}
+                      className="w-14 h-14 rounded-full object-cover ring-4 ring-amber-100"
+                    />
+                  ) : (
+                    <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center ring-4 ring-amber-200 text-amber-700 font-bold text-xl">
+                      {review.customerName.charAt(0)}
+                    </div>
+                  )}
                   <div className="flex-1">
-                    <h4 className="font-bold text-slate-900 text-lg">{review.name}</h4>
-                    <p className="text-slate-500 text-sm">{review.location}</p>
+                    <h4 className="font-bold text-slate-900 text-lg">{review.customerName}</h4>
+                    {review.location && <p className="text-slate-500 text-sm">{review.location}</p>}
                   </div>
-                  <span className="text-slate-400 text-sm">{review.date}</span>
                 </div>
               </div>
 
