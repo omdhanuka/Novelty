@@ -43,7 +43,7 @@ router.post('/addresses', protect, async (req, res) => {
     const makeDefault = user.addresses.length === 0 || isDefault;
 
     user.addresses.push({
-      type,
+      type: type ? type.toLowerCase() : 'home', // Normalize to lowercase
       name,
       phone,
       addressLine,
@@ -92,7 +92,7 @@ router.put('/addresses/:id', protect, async (req, res) => {
       });
     }
 
-    address.type = type || address.type;
+    address.type = type ? type.toLowerCase() : address.type; // Normalize to lowercase
     address.name = name || address.name;
     address.phone = phone || address.phone;
     address.addressLine = addressLine || address.addressLine;

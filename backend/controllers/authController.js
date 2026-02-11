@@ -249,3 +249,73 @@ export const updatePassword = async (req, res) => {
     });
   }
 };
+
+// @desc    Update user profile
+// @route   PUT /api/auth/profile
+// @access  Private
+export const updateProfile = async (req, res) => {
+  try {
+    const { name, phone, gender, dateOfBirth } = req.body;
+
+    console.log(`[updateProfile] userId=${req.user?._id} body=`, req.body);
+
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    // Update fields
+    if (name) user.name = name;
+    if (phone !== undefined) user.phone = phone;
+    if (gender) user.gender = gender;
+    if (dateOfBirth) {
+      // Coerce incoming date string to a Date object when possible
+      const parsed = new Date(dateOfBirth);
+      if (!isNaN(parsed)) {
+        user.dateOfBirth = parsed;
+      } else {
+        // if it's not a valid date, keep original value and log for debugging
+        console.warn(`[updateProfile] invalid dateOfBirth provided for user ${req.user?._id}:`, dateOfBirth);
+      }
+    }
+
+    // Normalize address types to lowercase to prevent validation errors
+    user.addresses.forEach((addr) => {
+      if (addr.type) {
+        addr.type = addr.type.toLowerCase();
+      }
+    });
+
+    try {
+      await user.save();
+      console.log('[updateProfile] Profile saved successfully');
+    } catch (saveErr) {
+      console.error('[updateProfile] error saving user:', saveErr);
+      throw saveErr;
+    }
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        gender: user.gender,
+        dateOfBirth: user.dateOfBirth,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

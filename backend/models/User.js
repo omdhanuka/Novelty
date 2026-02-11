@@ -27,6 +27,13 @@ const userSchema = new mongoose.Schema(
     avatar: {
       type: String,
     },
+    gender: {
+      type: String,
+      enum: ['Male', 'Female', 'Other'],
+    },
+    dateOfBirth: {
+      type: Date,
+    },
     role: {
       type: String,
       enum: ['user', 'admin', 'staff', 'support'],
@@ -38,8 +45,9 @@ const userSchema = new mongoose.Schema(
     addresses: [{
       type: {
         type: String,
-        enum: ['Home', 'Work', 'Other'],
-        default: 'Home',
+        // Accept both legacy capitalized values and normalized lowercase values
+        enum: ['home', 'work', 'other', 'Home', 'Work', 'Other'],
+        default: 'home',
       },
       name: {
         type: String,

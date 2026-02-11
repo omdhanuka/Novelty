@@ -11,9 +11,10 @@ import Register from './pages/Register';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-import UserProfile from './pages/UserProfile';
 
 // User Account imports
+import UserProfile from './pages/user/UserProfile';
+import EditProfile from './pages/user/EditProfile';
 import UserProfilePage from './pages/user/UserProfilePage';
 import AddressManagement from './pages/user/AddressManagement';
 import MyOrders from './pages/user/MyOrders';
@@ -101,7 +102,8 @@ function App() {
               <Route path="/account/orders/:orderId/track" element={<ProtectedRoute><TrackOrder /></ProtectedRoute>} />
               <Route path="/account/addresses" element={<ProtectedRoute><AddressManagement /></ProtectedRoute>} />
               <Route path="/account/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
-              <Route path="/account/profile" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
+              <Route path="/account/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+              <Route path="/account/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
               <Route path="/account/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
               <Route
                 path="/wishlist"

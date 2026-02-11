@@ -7,7 +7,10 @@ import {
   forgotPassword,
   resetPassword,
   updatePassword,
+  updateProfile,
 } from '../controllers/authController.js';
+import User from '../models/User.js';
+import crypto from 'crypto';
 
 const router = express.Router();
 
@@ -29,23 +32,7 @@ router.get('/profile', protect, async (req, res) => {
 });
 
 // Update user profile
-router.put('/profile', protect, async (req, res) => {
-  try {
-    const { name, phone, addresses } = req.body;
-
-    const user = await User.findById(req.user._id);
-
-    if (name) user.name = name;
-    if (phone) user.phone = phone;
-    if (addresses) user.addresses = addresses;
-
-    await user.save();
-
-    res.json({ success: true, data: user });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+router.put('/profile', protect, updateProfile);
 
 // Forgot Password - Generate reset token
 router.post('/forgot-password', async (req, res) => {
