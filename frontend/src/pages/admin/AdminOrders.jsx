@@ -8,6 +8,7 @@ import {
   AlertCircle, DollarSign, CreditCard, Smartphone
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Invoice from '../../components/Invoice';
 
 const AdminOrders = () => {
   const navigate = useNavigate();
@@ -26,6 +27,11 @@ const AdminOrders = () => {
   // Bulk selection
   const [selectedOrders, setSelectedOrders] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
+  
+  // Invoice modal
+  const [showInvoice, setShowInvoice] = useState(false);
+  const [invoiceOrder, setInvoiceOrder] = useState(null);
+  const [settings, setSettings] = useState(null);
 
   // Quick stats
   const { data: stats } = useQuery({
@@ -166,6 +172,59 @@ const AdminOrders = () => {
     } catch (error) {
       console.error('Export error:', error);
       alert('Export failed! Please try again.');
+    }
+  };
+
+  // Fetch order details for invoice
+  const fetchOrderForInvoice = async (orderId) => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      const response = await api.get(`/admin/orders/${orderId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      if (response.data.success) {
+        const orderData = response.data.data;
+        
+        // Normalize image URLs
+        if (orderData.items) {
+          orderData.items = orderData.items.map(item => {
+            let imageUrl = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23f3f4f6' width='200' height='200'/%3E%3C/svg%3E";
+            
+            if (item.image && item.image.trim() !== '') {
+              imageUrl = item.image;
+            } else if (item.product?.mainImage && item.product.mainImage.trim() !== '') {
+              imageUrl = item.product.mainImage;
+            } else if (item.product?.images && Array.isArray(item.product.images) && item.product.images.length > 0) {
+              const firstImage = item.product.images[0];
+              imageUrl = typeof firstImage === 'object' ? (firstImage?.url || imageUrl) : firstImage;
+            }
+            
+            // Convert relative URL to absolute URL
+            if (imageUrl && !imageUrl.startsWith('data:image') && !imageUrl.startsWith('http')) {
+              const cleanPath = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+              imageUrl = `http://localhost:5000${cleanPath}`;
+            }
+            
+            return { ...item, normalizedImage: imageUrl };
+          });
+        }
+        
+        setInvoiceOrder(orderData);
+        
+        // Fetch settings if not already loaded
+        if (!settings) {
+          const settingsResponse = await api.get('/content/settings');
+          if (settingsResponse.data.success) {
+            setSettings(settingsResponse.data.data);
+          }
+        }
+        
+        setShowInvoice(true);
+      }
+    } catch (error) {
+      console.error('Error fetching order:', error);
+      alert('Failed to load order details for invoice');
     }
   };
 
@@ -538,7 +597,7 @@ const AdminOrders = () => {
                             <Eye size={16} />
                           </button>
                           <button
-                            onClick={() => window.print()}
+                            onClick={() => fetchOrderForInvoice(order._id)}
                             className="text-gray-600 hover:text-gray-900"
                             title="Print Invoice"
                           >
@@ -612,6 +671,18 @@ const AdminOrders = () => {
           </>
         )}
       </div>
+      
+      {/* Invoice Modal */}
+      {showInvoice && invoiceOrder && (
+        <Invoice 
+          order={invoiceOrder} 
+          settings={settings}
+          onClose={() => {
+            setShowInvoice(false);
+            setInvoiceOrder(null);
+          }} 
+        />
+      )}
     </div>
   );
 };

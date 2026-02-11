@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import Invoice from '../../components/Invoice';
 import { api } from '../../lib/api';
 
 const OrderDetails = () => {
@@ -23,9 +24,12 @@ const OrderDetails = () => {
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showInvoice, setShowInvoice] = useState(false);
+  const [settings, setSettings] = useState(null);
 
   useEffect(() => {
     fetchOrder();
+    fetchSettings();
   }, [orderId]);
 
   const fetchOrder = async () => {
@@ -64,6 +68,17 @@ const OrderDetails = () => {
       console.error('Error fetching order:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSettings = async () => {
+    try {
+      const response = await api.get('/content/settings');
+      if (response.data.success) {
+        setSettings(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error);
     }
   };
 
@@ -363,7 +378,11 @@ const OrderDetails = () => {
                 </div>
 
                 {/* Download Invoice */}
-                <button className="mt-4 w-full py-2.5 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+                <button 
+                  onClick={() => setShowInvoice(true)}
+                  className="mt-4 w-full py-2.5 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2" 
+                  style={{ fontFamily: 'Inter, sans-serif' }}
+                >
                   <Download size={18} />
                   Download Invoice
                 </button>
@@ -373,6 +392,15 @@ const OrderDetails = () => {
         </div>
       </div>
       <Footer />
+      
+      {/* Invoice Modal */}
+      {showInvoice && order && (
+        <Invoice 
+          order={order} 
+          settings={settings}
+          onClose={() => setShowInvoice(false)} 
+        />
+      )}
     </>
   );
 };

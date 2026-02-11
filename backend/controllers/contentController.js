@@ -1,4 +1,5 @@
 import HomeContent from '../models/HomeContent.js';
+import Settings from '../models/Settings.js';
 
 // @desc    Get all home content
 // @route   GET /api/content
@@ -528,6 +529,42 @@ export const deleteFeature = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error deleting feature',
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Get public settings (for invoices, etc.)
+// @route   GET /api/content/settings
+// @access  Public
+export const getPublicSettings = async (req, res) => {
+  try {
+    let settings = await Settings.findOne();
+
+    if (!settings) {
+      settings = await Settings.create({});
+    }
+
+    // Return only public-facing settings
+    const publicSettings = {
+      storeName: settings.storeName,
+      storeEmail: settings.storeEmail,
+      storePhone: settings.storePhone,
+      storeAddress: settings.storeAddress,
+      gst: {
+        percentage: settings.gst?.percentage || 18,
+      },
+      invoiceSettings: settings.invoiceSettings,
+    };
+
+    res.json({
+      success: true,
+      data: publicSettings,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching settings',
       error: error.message,
     });
   }
