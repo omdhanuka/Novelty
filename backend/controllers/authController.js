@@ -298,7 +298,7 @@ export const updateProfile = async (req, res) => {
       throw saveErr;
     }
 
-    res.json({
+    const responseData = {
       success: true,
       message: 'Profile updated successfully',
       data: {
@@ -310,7 +310,10 @@ export const updateProfile = async (req, res) => {
         dateOfBirth: user.dateOfBirth,
         role: user.role,
       },
-    });
+    };
+    
+    console.log('[updateProfile] Sending response:', JSON.stringify(responseData));
+    res.json(responseData);
   } catch (error) {
     console.error('Update profile error:', error);
     res.status(500).json({

@@ -194,7 +194,7 @@ const Header = () => {
                           <p className="text-xs text-[#6B7280] truncate">{user?.email}</p>
                         </div>
                         <Link
-                          to="/profile"
+                          to="/account"
                           className="flex items-center gap-2 px-4 py-2 text-sm text-[#111827] hover:bg-[#F9FAFB]"
                           onClick={() => setShowUserMenu(false)}
                         >
@@ -202,7 +202,7 @@ const Header = () => {
                           My Profile
                         </Link>
                         <Link
-                          to="/orders"
+                          to="/account/orders"
                           className="flex items-center gap-2 px-4 py-2 text-sm text-[#111827] hover:bg-[#F9FAFB]"
                           onClick={() => setShowUserMenu(false)}
                         >
@@ -210,7 +210,7 @@ const Header = () => {
                           My Orders
                         </Link>
                         <Link
-                          to="/wishlist"
+                          to="/account/wishlist"
                           className="flex items-center gap-2 px-4 py-2 text-sm text-[#111827] hover:bg-[#F9FAFB]"
                           onClick={() => setShowUserMenu(false)}
                         >
@@ -218,7 +218,7 @@ const Header = () => {
                           My Wishlist
                         </Link>
                         <Link
-                          to="/addresses"
+                          to="/account/addresses"
                           className="flex items-center gap-2 px-4 py-2 text-sm text-[#111827] hover:bg-[#F9FAFB]"
                           onClick={() => setShowUserMenu(false)}
                         >
@@ -226,7 +226,7 @@ const Header = () => {
                           My Addresses
                         </Link>
                         <Link
-                          to="/change-password"
+                          to="/account/change-password"
                           className="flex items-center gap-2 px-4 py-2 text-sm text-[#111827] hover:bg-[#F9FAFB]"
                           onClick={() => setShowUserMenu(false)}
                         >
@@ -261,7 +261,7 @@ const Header = () => {
               </div>
 
               {/* Wishlist */}
-              <Link to="/wishlist" className="relative hidden md:block">
+              <Link to="/account/wishlist" className="relative hidden md:block">
                 <button className="p-2 hover:bg-white/80 rounded-lg transition-all duration-200">
                   <Heart size={20} className="text-[#111827]" />
                   {wishlistItems.length > 0 && (
@@ -350,7 +350,7 @@ const Header = () => {
                         <p className="text-xs text-[#6B7280] truncate">{user?.email}</p>
                       </div>
                       <Link
-                        to="/profile"
+                        to="/account"
                         onClick={toggleMobileMenu}
                         className="flex items-center gap-3 px-4 py-3 text-[15px] text-[#111827] hover:bg-[#F3F4F6] rounded-lg transition-colors"
                       >
@@ -358,7 +358,7 @@ const Header = () => {
                         My Profile
                       </Link>
                       <Link
-                        to="/orders"
+                        to="/account/orders"
                         onClick={toggleMobileMenu}
                         className="flex items-center gap-3 px-4 py-3 text-[15px] text-[#111827] hover:bg-[#F3F4F6] rounded-lg transition-colors"
                       >
@@ -366,7 +366,7 @@ const Header = () => {
                         My Orders
                       </Link>
                       <Link
-                        to="/wishlist"
+                        to="/account/wishlist"
                         onClick={toggleMobileMenu}
                         className="flex items-center gap-3 px-4 py-3 text-[15px] text-[#111827] hover:bg-[#F3F4F6] rounded-lg transition-colors"
                       >
@@ -374,7 +374,7 @@ const Header = () => {
                         My Wishlist
                       </Link>
                       <Link
-                        to="/addresses"
+                        to="/account/addresses"
                         onClick={toggleMobileMenu}
                         className="flex items-center gap-3 px-4 py-3 text-[15px] text-[#111827] hover:bg-[#F3F4F6] rounded-lg transition-colors"
                       >
@@ -382,7 +382,7 @@ const Header = () => {
                         My Addresses
                       </Link>
                       <Link
-                        to="/change-password"
+                        to="/account/change-password"
                         onClick={toggleMobileMenu}
                         className="flex items-center gap-3 px-4 py-3 text-[15px] text-[#111827] hover:bg-[#F3F4F6] rounded-lg transition-colors"
                       >

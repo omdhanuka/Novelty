@@ -15,7 +15,6 @@ import ResetPassword from './pages/ResetPassword';
 // User Account imports
 import UserProfile from './pages/user/UserProfile';
 import EditProfile from './pages/user/EditProfile';
-import UserProfilePage from './pages/user/UserProfilePage';
 import AddressManagement from './pages/user/AddressManagement';
 import MyOrders from './pages/user/MyOrders';
 import OrderDetails from './pages/user/OrderDetails';
@@ -69,34 +68,8 @@ function App() {
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-              {/* Protected User routes */}
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <UserProfile />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/orders"
-                element={
-                  <ProtectedRoute>
-                    <MyOrders />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/orders/:orderId"
-                element={
-                  <ProtectedRoute>
-                    <OrderDetails />
-                  </ProtectedRoute>
-                }
-              />
-
               {/* Account area routes without sidebar layout */}
-              <Route path="/account" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
+              <Route path="/account" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
               <Route path="/account/orders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
               <Route path="/account/orders/:orderId" element={<ProtectedRoute><OrderDetails /></ProtectedRoute>} />
               <Route path="/account/orders/:orderId/track" element={<ProtectedRoute><TrackOrder /></ProtectedRoute>} />
@@ -105,14 +78,7 @@ function App() {
               <Route path="/account/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
               <Route path="/account/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
               <Route path="/account/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
-              <Route
-                path="/wishlist"
-                element={
-                  <ProtectedRoute>
-                    <Wishlist />
-                  </ProtectedRoute>
-                }
-              />
+              
               <Route
                 path="/cart"
                 element={
@@ -126,22 +92,6 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Checkout />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/addresses"
-                element={
-                  <ProtectedRoute>
-                    <AddressManagement />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/change-password"
-                element={
-                  <ProtectedRoute>
-                    <ChangePassword />
                   </ProtectedRoute>
                 }
               />

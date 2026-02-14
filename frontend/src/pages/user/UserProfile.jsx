@@ -101,11 +101,11 @@ const UserProfile = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Back Button */}
           <button 
-            onClick={() => navigate('/account')}
+            onClick={() => navigate('/')}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
           >
             <ArrowLeft size={20} />
-            <span className="font-medium">User Profile</span>
+            <span className="font-medium">Home</span>
           </button>
 
           {/* Profile Header Card */}
@@ -239,7 +239,7 @@ const UserProfile = () => {
                           <Package size={24} className="text-indigo-600" />
                         </div>
                         <div>
-                          <p className="font-bold text-gray-900">{order.orderId}</p>
+                          <p className="font-bold text-gray-900">{order.orderNumber}</p>
                           <p className="text-sm text-gray-500">
                             Placed {formatDate(order.createdAt)}
                           </p>
@@ -247,7 +247,7 @@ const UserProfile = () => {
                       </div>
                       <div className="text-right">
                         <p className="font-bold text-indigo-600 text-lg">
-                          {formatCurrency(order.totalAmount)}
+                          {formatCurrency(order.totalPrice)}
                         </p>
                         <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(order.orderStatus)}`}>
                           {order.orderStatus}

@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Camera, 
-  X, 
   MapPin, 
   Home,
   Briefcase,
@@ -20,8 +18,6 @@ const EditProfile = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [addresses, setAddresses] = useState([]);
-  const [_selectedImage, setSelectedImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
 
   // Helper function to format date for input[type="date"]
   const formatDateForInput = (dateString) => {
@@ -98,35 +94,6 @@ const EditProfile = () => {
     });
   };
 
-  const handleAddressSelect = (address) => {
-    setSelectedAddressId(address._id);
-    setAddressData({
-      type: (address.type || 'home').toLowerCase(), // Normalize to lowercase
-      addressLine: address.addressLine,
-      city: address.city,
-      state: address.state,
-      pincode: address.pincode,
-      isDefault: address.isDefault,
-    });
-  };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleRemoveImage = () => {
-    setSelectedImage(null);
-    setImagePreview(null);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -135,6 +102,13 @@ const EditProfile = () => {
 
     try {
       // Update profile
+      console.log('[Frontend] Sending profile update request:', {
+        name: formData.name,
+        phone: formData.phone,
+        gender: formData.gender,
+        dateOfBirth: formData.dateOfBirth,
+      });
+      
       const profileResponse = await api.put('/auth/profile', {
         name: formData.name,
         phone: formData.phone,
@@ -142,42 +116,67 @@ const EditProfile = () => {
         dateOfBirth: formData.dateOfBirth,
       });
 
+      console.log('[Frontend] Received profile response:', profileResponse.data);
+
       if (profileResponse.data.success) {
         setUser(profileResponse.data.data);
+        let addressError = false;
 
-        // Update or create address if modified
+        // Update or create address if all required fields are filled
         if (addressData.addressLine && addressData.city && addressData.state && addressData.pincode) {
-          if (selectedAddressId) {
-            // Update existing address
-            await api.put(`/user/addresses/${selectedAddressId}`, {
-              ...addressData,
-              name: formData.name,
-              phone: formData.phone,
-            });
+          // Validate that city and state are not empty strings
+          if (addressData.city === '' || addressData.state === '') {
+            setError('Profile updated, but address not saved. Please select both City and State.');
+            addressError = true;
           } else {
-            // Create new address
-            await api.post('/user/addresses', {
-              ...addressData,
-              name: formData.name,
-              phone: formData.phone,
-            });
+            try {
+              console.log('[Frontend] Updating address:', addressData);
+              if (selectedAddressId) {
+                // Update existing address
+                const addrResponse = await api.put(`/user/addresses/${selectedAddressId}`, {
+                  ...addressData,
+                  name: formData.name,
+                  phone: formData.phone,
+                });
+                console.log('[Frontend] Address update response:', addrResponse.data);
+              } else {
+                // Create new address
+                const addrResponse = await api.post('/user/addresses', {
+                  ...addressData,
+                  name: formData.name,
+                  phone: formData.phone,
+                });
+                console.log('[Frontend] Address create response:', addrResponse.data);
+              }
+              console.log('[Frontend] Address updated successfully');
+            } catch (addrErr) {
+              console.error('[Frontend] Address update error:', addrErr);
+              console.error('[Frontend] Error details:', addrErr.response?.data);
+              addressError = true;
+              setError('Profile updated, but failed to update address: ' + (addrErr.response?.data?.message || addrErr.message || 'Unknown error'));
+            }
           }
         }
 
-        setMessage('Profile updated successfully!');
+        if (!addressError) {
+          setMessage('Profile updated successfully!');
+        }
+        
         setTimeout(() => {
           navigate('/account/profile');
         }, 1500);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update profile');
+      console.error('[Frontend] Profile update error:', err);
+      console.error('[Frontend] Error details:', err.response?.data);
+      setError(err.response?.data?.message || err.message || 'Failed to update profile');
     } finally {
       setLoading(false);
     }
   };
 
-  const cities = ['Berhampur', 'Bhubaneswar', 'Cuttack', 'Puri', 'Sambalpur', 'Rourkela'];
-  const states = ['Odisha', 'West Bengal', 'Andhra Pradesh', 'Chhattisgarh', 'Jharkhand'];
+  const cities = ['Angul', 'Balangir', 'Balasore', 'Bargarh', 'Bhadrak', 'Boudh', 'Cuttack', 'Deogarh', 'Dhenkanal', 'Gajapati', 'Ganjam', 'Jagatsinghapur', 'Jajpur', 'Jharsuguda', 'Kalahandi', 'Kandhamal', 'Kendrapara', 'Keonjhar', 'Khordha', 'Koraput', 'Malkangiri', 'Mayurbhanj', 'Nabarangpur', 'Nayagarh', 'Nuapada', 'Puri', 'Rayagada', 'Sambalpur', 'Subarnapur','Sundargarh'];
+  const states = ['Odisha'];
 
   return (
     <>
@@ -208,46 +207,11 @@ const EditProfile = () => {
               {/* Profile Picture */}
               <div className="flex flex-col items-center mb-8">
                 <div className="relative">
-                  {imagePreview ? (
-                    <img 
-                      src={imagePreview} 
-                      alt="Profile" 
-                      className="w-32 h-32 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-32 h-32 bg-linear-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white text-4xl font-bold">
-                      {formData.name?.charAt(0)?.toUpperCase()}
-                    </div>
-                  )}
-                  <label 
-                    htmlFor="photo-upload"
-                    className="absolute bottom-0 right-0 w-10 h-10 bg-indigo-600 rounded-full shadow-lg flex items-center justify-center hover:bg-indigo-700 transition-colors text-white cursor-pointer"
-                  >
-                    <Camera size={18} />
-                  </label>
-                  <input
-                    id="photo-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="hidden"
-                  />
+                  <div className="w-32 h-32 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white text-4xl font-bold">
+                    {formData.name?.charAt(0)?.toUpperCase()}
+                  </div>
                 </div>
-                <label
-                  htmlFor="photo-upload"
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium mt-4 cursor-pointer"
-                >
-                  Change Photo
-                </label>
-                {imagePreview && (
-                  <button
-                    type="button"
-                    onClick={handleRemoveImage}
-                    className="text-sm text-red-600 hover:text-red-700 mt-2"
-                  >
-                    Remove
-                  </button>
-                )}
+                <p className="text-sm text-gray-500 mt-3">Profile photo upload coming soon</p>
               </div>
 
               <div className="space-y-6 max-w-2xl mx-auto">
