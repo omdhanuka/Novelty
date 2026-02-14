@@ -61,6 +61,7 @@ function App() {
               {/* Product routes */}
               <Route path="/products" element={<ProductList />} />
               <Route path="/products/:id" element={<ProductDetails />} />
+              <Route path="/product/:id" element={<ProductDetails />} /> {/* Alias for backward compatibility */}
 
               {/* User Auth routes */}
               <Route path="/register" element={<Register />} />

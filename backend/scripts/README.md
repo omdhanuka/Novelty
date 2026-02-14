@@ -16,6 +16,23 @@ Seeds the database with initial product categories.
 - **When**: Run once during initial project setup
 - **Security**: Blocked in production environment
 
+### fixStockStatus.js
+Fixes stock status for all products based on their actual stock count.
+- **Usage**: `node scripts/fixStockStatus.js`
+- **When**: Run when products show incorrect stock status (e.g., showing "Out of Stock" when stock > 0)
+- **What it does**: 
+  - Scans all products in the database
+  - Recalculates correct stock status based on stock count
+  - Updates products with incorrect status
+  - Shows summary of fixed products
+- **Security**: Can be run in any environment but requires database access
+
+### normalizeAddressTypes.js
+Normalizes address types to use consistent enum values.
+- **Usage**: `node scripts/normalizeAddressTypes.js`
+- **When**: Run if address types need standardization
+- **Security**: Blocked in production environment
+
 ## Production Deployment
 
 ⚠️ **IMPORTANT**: 

@@ -12,12 +12,49 @@ router.get('/wishlist', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate({
       path: 'wishlist',
-      select: 'name price originalPrice images inStock rating reviews',
+      select: 'name price images mainImage hoverImage stock stockStatus rating numReviews slug lowStockThreshold',
     });
+
+    // Auto-correct stock status for each item
+    const wishlistItems = user.wishlist.map(item => {
+      if (item && typeof item.stock !== 'undefined') {
+        const correctStockStatus = 
+          item.stock === 0 
+            ? 'out_of_stock' 
+            : item.stock <= (item.lowStockThreshold || 10)
+            ? 'low_stock'
+            : 'in_stock';
+        
+        // Update if incorrect (without saving to DB for now)
+        if (item.stockStatus !== correctStockStatus) {
+          console.log(`⚠️ Stock status mismatch for ${item.name}:`, {
+            stock: item.stock,
+            dbStatus: item.stockStatus,
+            correctStatus: correctStockStatus
+          });
+          item.stockStatus = correctStockStatus;
+        }
+      }
+      return item;
+    });
+
+    // Debug logging
+    console.log('=== WISHLIST DEBUG ===');
+    console.log('User:', req.user._id);
+    console.log('Wishlist items count:', wishlistItems?.length || 0);
+    if (wishlistItems && wishlistItems.length > 0) {
+      wishlistItems.forEach(item => {
+        console.log(`Product: ${item.name}`);
+        console.log(`  - Stock: ${item.stock}`);
+        console.log(`  - Stock Status: ${item.stockStatus}`);
+        console.log(`  - Price:`, item.price);
+      });
+    }
+    console.log('======================');
 
     res.json({
       success: true,
-      data: user.wishlist || [],
+      data: wishlistItems || [],
     });
   } catch (error) {
     res.status(500).json({
@@ -57,7 +94,7 @@ router.post('/wishlist', protect, async (req, res) => {
 
     await user.populate({
       path: 'wishlist',
-      select: 'name price originalPrice images inStock rating reviews',
+      select: 'name price images mainImage hoverImage stock stockStatus rating numReviews slug',
     });
 
     res.json({
@@ -88,7 +125,7 @@ router.delete('/wishlist/:productId', protect, async (req, res) => {
 
     await user.populate({
       path: 'wishlist',
-      select: 'name price originalPrice images inStock rating reviews',
+      select: 'name price images mainImage hoverImage stock stockStatus rating numReviews slug',
     });
 
     res.json({
