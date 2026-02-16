@@ -146,7 +146,7 @@ export const forgotPassword = async (req, res) => {
       .createHash('sha256')
       .update(resetToken)
       .digest('hex');
-    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+    user.resetPasswordExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes
 
     await user.save();
 
@@ -156,7 +156,8 @@ export const forgotPassword = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Password reset email sent',
+      message: 'Password reset token generated. Please check your email.',
+      resetToken, // Remove in production
       resetUrl, // Remove in production
     });
   } catch (error) {
@@ -173,6 +174,33 @@ export const forgotPassword = async (req, res) => {
 // @access  Public
 export const resetPassword = async (req, res) => {
   try {
+    const { password, newPassword, confirmPassword } = req.body;
+    
+    // Accept either 'password' or 'newPassword' from frontend
+    const newPass = password || newPassword;
+    
+    // Validation
+    if (!newPass) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password is required',
+      });
+    }
+
+    if (confirmPassword && newPass !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Passwords do not match',
+      });
+    }
+
+    if (newPass.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 6 characters long',
+      });
+    }
+
     const resetPasswordToken = crypto
       .createHash('sha256')
       .update(req.params.resetToken)
@@ -180,7 +208,7 @@ export const resetPassword = async (req, res) => {
 
     const user = await User.findOne({
       resetPasswordToken,
-      resetPasswordExpire: { $gt: Date.now() },
+      resetPasswordExpiry: { $gt: Date.now() },
     });
 
     if (!user) {
@@ -191,9 +219,9 @@ export const resetPassword = async (req, res) => {
     }
 
     // Set new password
-    user.password = req.body.password;
+    user.password = newPass;
     user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
+    user.resetPasswordExpiry = undefined;
     await user.save();
 
     const token = generateToken(user._id);
