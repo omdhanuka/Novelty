@@ -102,20 +102,14 @@ const userSchema = new mongoose.Schema(
     resetPasswordExpiry: {
       type: Date,
     },
-    resetPasswordOTP: {
-      type: String,
-    },
-<<<<<<< Updated upstream
-    resetPasswordOTPExpiry: {
-      type: Date,
-    },
-    // Rate limiting for OTP requests
-=======
-    resetPasswordOTPExpire: {
-      type: Date,
-    },
->>>>>>> Stashed changes
-    otpRequestCount: {
+resetPasswordOTP: {
+  type: String,
+},
+resetPasswordOTPExpiry: {
+  type: Date,
+},
+// Rate limiting for OTP requests
+otpRequestCount: {
       type: Number,
       default: 0,
     },

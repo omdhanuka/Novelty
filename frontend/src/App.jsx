@@ -13,7 +13,6 @@ import ForgotPassword from './pages/ForgotPassword';
 import VerifyResetOTP from './pages/VerifyResetOTP';
 import ResetPassword from './pages/ResetPassword';
 import VerifyEmail from './pages/VerifyEmail';
-import VerifyResetOTP from './pages/VerifyResetOTP';
 
 // User Account imports
 import UserProfile from './pages/user/UserProfile';
