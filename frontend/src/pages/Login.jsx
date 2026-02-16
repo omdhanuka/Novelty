@@ -45,7 +45,17 @@ const Login = () => {
     if (result.success) {
       navigate(from, { replace: true });
     } else {
-      setError(result.message);
+      // Check if user needs to verify email
+      if (result.needsVerification) {
+        setError('');
+        alert('Please verify your email first. We will send you a new verification code.');
+        // Optionally trigger resend OTP
+        navigate('/verify-email', {
+          state: { email: result.email || formData.email },
+        });
+      } else {
+        setError(result.message);
+      }
     }
   };
 

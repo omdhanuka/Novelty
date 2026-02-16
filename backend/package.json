@@ -10,21 +10,28 @@
     "seed": "node scripts/seedData.js",
     "setup-admin": "node scripts/setupAdmin.js"
   },
-  "keywords": ["ecommerce", "bags", "api", "mongodb", "express"],
+  "keywords": [
+    "ecommerce",
+    "bags",
+    "api",
+    "mongodb",
+    "express"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.18.2",
-    "mongoose": "^8.0.3",
-    "dotenv": "^16.3.1",
-    "cors": "^2.8.5",
     "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.2",
-    "express-validator": "^7.0.1",
     "cloudinary": "^1.41.0",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-validator": "^7.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.0.3",
     "multer": "^1.4.5-lts.1",
-    "razorpay": "^2.9.2",
-    "crypto": "^1.0.1"
+    "nodemailer": "^8.0.1",
+    "razorpay": "^2.9.2"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"

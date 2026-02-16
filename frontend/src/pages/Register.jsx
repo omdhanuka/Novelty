@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, Lock, Mail, User as UserIcon, Phone, Shield, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { api } from '../lib/api';
 
 const Register = () => {
   const navigate = useNavigate();
-  const { register } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -65,19 +64,29 @@ const Register = () => {
     setLoading(true);
     setError('');
 
-    const result = await register({
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
-      phone: formData.phone,
-    });
+    try {
+      const response = await api.post('/auth/send-verification-otp', {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        phone: formData.phone,
+      });
 
-    setLoading(false);
-
-    if (result.success) {
-      navigate('/');
-    } else {
-      setError(result.message);
+      if (response.data.success) {
+        // Navigate to email verification page
+        navigate('/verify-email', {
+          state: {
+            email: response.data.email || formData.email,
+            name: formData.name,
+          },
+        });
+      } else {
+        setError(response.data.message || 'Registration failed');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
