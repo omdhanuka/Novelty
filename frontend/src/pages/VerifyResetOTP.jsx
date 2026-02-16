@@ -1,23 +1,39 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
+<<<<<<< Updated upstream
 import { Lock, ArrowLeft, RefreshCw, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import OTPInput from '../components/OTPInput';
 import { api } from '../lib/api';
+=======
+import { api } from '../lib/api';
+import OTPInput from '../components/OTPInput';
+>>>>>>> Stashed changes
 
 const VerifyResetOTP = () => {
   const navigate = useNavigate();
   const location = useLocation();
+<<<<<<< Updated upstream
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [countdown, setCountdown] = useState(0);
 
   const email = location.state?.email || '';
+=======
+  const email = location.state?.email;
+
+  const [otp, setOtp] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [countdown, setCountdown] = useState(60);
+  const [canResend, setCanResend] = useState(false);
+>>>>>>> Stashed changes
 
   useEffect(() => {
     if (!email) {
       navigate('/forgot-password');
+<<<<<<< Updated upstream
     }
   }, [email, navigate]);
 
@@ -31,6 +47,28 @@ const VerifyResetOTP = () => {
   const handleVerify = async (otpValue = otp) => {
     if (!otpValue || otpValue.length !== 6) {
       setError('Please enter a valid 6-digit OTP');
+=======
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          setCanResend(true);
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [email, navigate]);
+
+  const handleVerifyOTP = async (otpValue = otp) => {
+    if (otpValue.length !== 6) {
+      setError('Please enter a 6-digit OTP');
+>>>>>>> Stashed changes
       return;
     }
 
@@ -44,6 +82,7 @@ const VerifyResetOTP = () => {
       });
 
       if (response.data.success) {
+<<<<<<< Updated upstream
         // Navigate to reset password page with token
         navigate(`/reset-password/${response.data.resetToken}`, {
           state: { email },
@@ -53,14 +92,29 @@ const VerifyResetOTP = () => {
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Verification failed. Please try again.');
+=======
+        // Navigate to reset password page with the token
+        navigate(`/reset-password/${response.data.resetToken}`);
+      } else {
+        setError(response.data.message);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to verify OTP');
+>>>>>>> Stashed changes
     } finally {
       setLoading(false);
     }
   };
 
   const handleResendOTP = async () => {
+<<<<<<< Updated upstream
     if (countdown > 0) return;
 
+=======
+    if (!canResend) return;
+
+    setLoading(true);
+>>>>>>> Stashed changes
     setError('');
 
     try {
@@ -68,14 +122,34 @@ const VerifyResetOTP = () => {
 
       if (response.data.success) {
         setCountdown(60);
+<<<<<<< Updated upstream
         setOtp('');
         alert('New OTP sent to your email!');
       } else {
         setError(response.data.message || 'Failed to resend OTP');
+=======
+        setCanResend(false);
+        setError('');
+        
+        // Restart countdown
+        const timer = setInterval(() => {
+          setCountdown((prev) => {
+            if (prev <= 1) {
+              setCanResend(true);
+              clearInterval(timer);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      } else {
+        setError(response.data.message);
+>>>>>>> Stashed changes
       }
     } catch (err) {
       const errorData = err.response?.data;
       if (err.response?.status === 429) {
+<<<<<<< Updated upstream
         // Rate limit error
         if (errorData?.remainingTime) {
           setCountdown(errorData.remainingTime);
@@ -84,14 +158,29 @@ const VerifyResetOTP = () => {
           setError(errorData.message);
         } else {
           setError(errorData?.message || 'Too many requests. Please try again later.');
+=======
+        if (errorData?.remainingTime) {
+          setCountdown(errorData.remainingTime);
+          setCanResend(false);
+          setError(`Please wait ${errorData.remainingTime} seconds before requesting another OTP`);
+        } else if (errorData?.limitExceeded) {
+          setError(errorData.message);
+          setCanResend(false);
+>>>>>>> Stashed changes
         }
       } else {
         setError(errorData?.message || 'Failed to resend OTP');
       }
+<<<<<<< Updated upstream
+=======
+    } finally {
+      setLoading(false);
+>>>>>>> Stashed changes
     }
   };
 
   return (
+<<<<<<< Updated upstream
     <div className="min-h-screen flex">
       {/* LEFT SIDE - Brand */}
       <motion.div
@@ -190,11 +279,33 @@ const VerifyResetOTP = () => {
           )}
 
           {/* OTP Input */}
+=======
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Verify OTP
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Enter the 6-digit code sent to <br />
+            <span className="font-medium">{email}</span>
+          </p>
+        </div>
+
+        <div className="mt-8 space-y-6">
+          {error && (
+            <div className="rounded-md bg-red-50 p-4">
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+          )}
+
+>>>>>>> Stashed changes
           <div className="space-y-6">
             <OTPInput
               length={6}
               value={otp}
               onChange={setOtp}
+<<<<<<< Updated upstream
               onComplete={handleVerify}
             />
 
@@ -260,6 +371,51 @@ const VerifyResetOTP = () => {
           </div>
         </div>
       </motion.div>
+=======
+              onComplete={handleVerifyOTP}
+            />
+
+            <button
+              type="button"
+              onClick={() => handleVerifyOTP()}
+              disabled={loading || otp.length !== 6}
+              className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white 
+                ${
+                  loading || otp.length !== 6
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+                }`}
+            >
+              {loading ? 'Verifying...' : 'Verify OTP'}
+            </button>
+          </div>
+
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={handleResendOTP}
+              disabled={!canResend || loading}
+              className={`text-sm font-medium ${
+                canResend && !loading
+                  ? 'text-indigo-600 hover:text-indigo-500'
+                  : 'text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              {canResend ? 'Resend OTP' : `Resend OTP in ${countdown}s`}
+            </button>
+          </div>
+
+          <div className="text-center">
+            <Link
+              to="/forgot-password"
+              className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+            >
+              ← Back to Forgot Password
+            </Link>
+          </div>
+        </div>
+      </div>
+>>>>>>> Stashed changes
     </div>
   );
 };
