@@ -38,7 +38,17 @@ const ForgotPassword = () => {
         setError(response.data.message);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to send reset code');
+      const errorData = err.response?.data;
+      if (err.response?.status === 429) {
+        // Rate limit error
+        if (errorData?.remainingTime) {
+          setError(`${errorData.message} (${errorData.remainingTime} seconds)`);
+        } else {
+          setError(errorData?.message || 'Too many requests. Please try again later.');
+        }
+      } else {
+        setError(errorData?.message || 'Failed to send reset code');
+      }
     } finally {
       setLoading(false);
     }

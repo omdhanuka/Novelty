@@ -38,12 +38,40 @@ export const sendVerificationOTP = async (req, res) => {
           message: 'Email already registered. Please login.',
         });
       }
-      // User exists but not verified, send new OTP
+      // User exists but not verified, check rate limiting
+      const now = Date.now();
+      if (existingUser.lastOTPRequestTime && (now - existingUser.lastOTPRequestTime.getTime()) < 60000) {
+        const remainingTime = Math.ceil((60000 - (now - existingUser.lastOTPRequestTime.getTime())) / 1000);
+        return res.status(429).json({
+          success: false,
+          message: `Please wait ${remainingTime} seconds before requesting another OTP`,
+          remainingTime,
+        });
+      }
+
+      // Check 24-hour limit
+      if (existingUser.otpRequestResetTime && (now - existingUser.otpRequestResetTime.getTime()) > 24 * 60 * 60 * 1000) {
+        existingUser.otpRequestCount = 0;
+        existingUser.otpRequestResetTime = now;
+      } else if (!existingUser.otpRequestResetTime) {
+        existingUser.otpRequestResetTime = now;
+        existingUser.otpRequestCount = 0;
+      }
+
+      if (existingUser.otpRequestCount >= 3) {
+        const timeUntilReset = Math.ceil((24 * 60 * 60 * 1000 - (now - existingUser.otpRequestResetTime.getTime())) / 1000 / 60);
+        return res.status(429).json({
+          success: false,
+          message: `You have exceeded the maximum OTP requests. Please try again in ${timeUntilReset} minutes`,
+          limitExceeded: true,
+        });
+      }
     }
 
     // Generate OTP
     const otp = generateOTP();
     const otpExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes
+    const now = Date.now();
 
     // If user exists but not verified, update OTP
     if (existingUser) {
@@ -52,6 +80,8 @@ export const sendVerificationOTP = async (req, res) => {
       existingUser.name = name;
       existingUser.password = password;
       if (phone) existingUser.phone = phone;
+      existingUser.lastOTPRequestTime = now;
+      existingUser.otpRequestCount += 1;
       await existingUser.save();
     } else {
       // Create new user (unverified)
@@ -63,6 +93,9 @@ export const sendVerificationOTP = async (req, res) => {
         isVerified: false,
         emailVerificationOTP: otp,
         emailVerificationOTPExpiry: otpExpiry,
+        lastOTPRequestTime: now,
+        otpRequestCount: 1,
+        otpRequestResetTime: now,
       });
     }
 
@@ -181,10 +214,44 @@ export const resendVerificationOTP = async (req, res) => {
       });
     }
 
+    // Rate limiting: Check if last request was within 1 minute
+    const now = Date.now();
+    if (user.lastOTPRequestTime && (now - user.lastOTPRequestTime.getTime()) < 60000) {
+      const remainingTime = Math.ceil((60000 - (now - user.lastOTPRequestTime.getTime())) / 1000);
+      return res.status(429).json({
+        success: false,
+        message: `Please wait ${remainingTime} seconds before requesting another OTP`,
+        remainingTime,
+      });
+    }
+
+    // Rate limiting: Check 24-hour limit (3 attempts per 24 hours)
+    if (user.otpRequestResetTime && (now - user.otpRequestResetTime.getTime()) > 24 * 60 * 60 * 1000) {
+      // Reset counter after 24 hours
+      user.otpRequestCount = 0;
+      user.otpRequestResetTime = now;
+    } else if (!user.otpRequestResetTime) {
+      // First time request
+      user.otpRequestResetTime = now;
+      user.otpRequestCount = 0;
+    }
+
+    // Check if limit exceeded
+    if (user.otpRequestCount >= 3) {
+      const timeUntilReset = Math.ceil((24 * 60 * 60 * 1000 - (now - user.otpRequestResetTime.getTime())) / 1000 / 60);
+      return res.status(429).json({
+        success: false,
+        message: `You have exceeded the maximum OTP requests. Please try again in ${timeUntilReset} minutes`,
+        limitExceeded: true,
+      });
+    }
+
     // Generate new OTP
     const otp = generateOTP();
     user.emailVerificationOTP = otp;
     user.emailVerificationOTPExpiry = Date.now() + 10 * 60 * 1000;
+    user.lastOTPRequestTime = Date.now();
+    user.otpRequestCount += 1;
     await user.save();
 
     // Send OTP email
@@ -315,10 +382,44 @@ export const forgotPassword = async (req, res) => {
     // This supports legacy accounts created before email verification was enforced.
     console.log('Proceeding with password reset (verification not required).');
 
+    // Rate limiting: Check if last request was within 1 minute
+    const now = Date.now();
+    if (user.lastOTPRequestTime && (now - user.lastOTPRequestTime.getTime()) < 60000) {
+      const remainingTime = Math.ceil((60000 - (now - user.lastOTPRequestTime.getTime())) / 1000);
+      return res.status(429).json({
+        success: false,
+        message: `Please wait ${remainingTime} seconds before requesting another OTP`,
+        remainingTime,
+      });
+    }
+
+    // Rate limiting: Check 24-hour limit (3 attempts per 24 hours)
+    if (user.otpRequestResetTime && (now - user.otpRequestResetTime.getTime()) > 24 * 60 * 60 * 1000) {
+      // Reset counter after 24 hours
+      user.otpRequestCount = 0;
+      user.otpRequestResetTime = now;
+    } else if (!user.otpRequestResetTime) {
+      // First time request
+      user.otpRequestResetTime = now;
+      user.otpRequestCount = 0;
+    }
+
+    // Check if limit exceeded
+    if (user.otpRequestCount >= 3) {
+      const timeUntilReset = Math.ceil((24 * 60 * 60 * 1000 - (now - user.otpRequestResetTime.getTime())) / 1000 / 60);
+      return res.status(429).json({
+        success: false,
+        message: `You have exceeded the maximum OTP requests. Please try again in ${timeUntilReset} minutes`,
+        limitExceeded: true,
+      });
+    }
+
     // Generate OTP
     const otp = generateOTP();
     user.resetPasswordOTP = otp;
     user.resetPasswordOTPExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes
+    user.lastOTPRequestTime = Date.now();
+    user.otpRequestCount += 1;
     await user.save();
 
     // Send OTP email

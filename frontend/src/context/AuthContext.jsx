@@ -114,7 +114,7 @@ export const AuthProvider = ({ children }) => {
 
   const resetPassword = async (token, passwords) => {
     try {
-      const response = await api.post(`/auth/reset-password/${token}`, passwords);
+      const response = await api.put(`/auth/reset-password/${token}`, passwords);
       return {
         success: response.data.success,
         message: response.data.message,

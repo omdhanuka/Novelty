@@ -74,7 +74,20 @@ const VerifyResetOTP = () => {
         setError(response.data.message || 'Failed to resend OTP');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to resend OTP');
+      const errorData = err.response?.data;
+      if (err.response?.status === 429) {
+        // Rate limit error
+        if (errorData?.remainingTime) {
+          setCountdown(errorData.remainingTime);
+          setError(errorData.message);
+        } else if (errorData?.limitExceeded) {
+          setError(errorData.message);
+        } else {
+          setError(errorData?.message || 'Too many requests. Please try again later.');
+        }
+      } else {
+        setError(errorData?.message || 'Failed to resend OTP');
+      }
     }
   };
 

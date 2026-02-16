@@ -77,14 +77,26 @@ const VerifyEmail = () => {
       if (response.data.success) {
         setCountdown(60); // 60 second cooldown
         setOtp(''); // Clear OTP input
-        // Show success message briefly
         setError('');
         alert('New OTP sent to your email!');
       } else {
         setError(response.data.message || 'Failed to resend OTP');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to resend OTP');
+      const errorData = err.response?.data;
+      if (err.response?.status === 429) {
+        // Rate limit error
+        if (errorData?.remainingTime) {
+          setCountdown(errorData.remainingTime);
+          setError(errorData.message);
+        } else if (errorData?.limitExceeded) {
+          setError(errorData.message);
+        } else {
+          setError(errorData?.message || 'Too many requests. Please try again later.');
+        }
+      } else {
+        setError(errorData?.message || 'Failed to resend OTP');
+      }
     } finally {
       setResending(false);
     }
