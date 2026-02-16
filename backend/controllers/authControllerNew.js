@@ -311,9 +311,12 @@ export const forgotPassword = async (req, res) => {
       await user.save();
     }
 
-    // NOTE: Allow password reset regardless of email verification status.
-    // This supports legacy accounts created before email verification was enforced.
-    console.log('Proceeding with password reset (verification not required).');
+    if (!user.isVerified) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please verify your email first',
+      });
+    }
 
     // Generate OTP
     const otp = generateOTP();

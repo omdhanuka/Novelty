@@ -8,21 +8,33 @@ import {
   resetPassword,
   updatePassword,
   updateProfile,
+  sendVerificationOTP,
+  verifyEmailOTP,
+  resendVerificationOTP,
+  verifyResetOTP,
 } from '../controllers/authController.js';
-import User from '../models/User.js';
-import crypto from 'crypto';
 
 const router = express.Router();
 
-// Auth routes
-router.post('/register', register);
-router.post('/login', login);
-router.get('/me', protect, getMe);
-router.post('/forgot-password', forgotPassword);
-router.put('/reset-password/:resetToken', resetPassword);
-router.put('/update-password', protect, updatePassword);
+// Registration with email verification
+router.post('/send-verification-otp', sendVerificationOTP);
+router.post('/verify-email', verifyEmailOTP);
+router.post('/resend-verification-otp', resendVerificationOTP);
 
-// Get user profile
+// Legacy registration (without OTP)
+router.post('/register', register);
+
+// Login
+router.post('/login', login);
+
+// Password reset with OTP
+router.post('/forgot-password', forgotPassword);
+router.post('/verify-reset-otp', verifyResetOTP);
+router.put('/reset-password/:resetToken', resetPassword);
+
+// Protected routes
+router.get('/me', protect, getMe);
+router.put('/update-password', protect, updatePassword);
 router.get('/profile', protect, async (req, res) => {
   try {
     res.json({ success: true, data: req.user });
@@ -30,8 +42,6 @@ router.get('/profile', protect, async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-
-// Update user profile
 router.put('/profile', protect, updateProfile);
 
 export default router;

@@ -1,16 +1,14 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { Link, useNavigate } from 'react-router-dom';
 import { Mail, ArrowLeft, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { api } from '../lib/api';
 
 const ForgotPassword = () => {
-  const { forgotPassword } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const [resetToken, setResetToken] = useState(''); // For testing only
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,17 +25,22 @@ const ForgotPassword = () => {
 
     setLoading(true);
     setError('');
-    setMessage('');
 
-    const result = await forgotPassword(email);
+    try {
+      const response = await api.post('/auth/forgot-password', { email });
 
-    setLoading(false);
-
-    if (result.success) {
-      setMessage(result.message);
-      setResetToken(result.resetToken); // Remove in production
-    } else {
-      setError(result.message);
+      if (response.data.success) {
+        // Navigate to OTP verification page
+        navigate('/verify-reset-otp', {
+          state: { email: response.data.email || email },
+        });
+      } else {
+        setError(response.data.message);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to send reset code');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -138,31 +141,6 @@ const ForgotPassword = () => {
             </motion.div>
           )}
 
-          {message && (
-            <motion.div 
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="rounded-lg bg-green-50 border border-green-200 p-4"
-            >
-              <div className="flex items-start gap-3 mb-3">
-                <CheckCircle size={20} className="text-green-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-green-800">{message}</p>
-              </div>
-              {resetToken && (
-                <div className="mt-3 p-3 bg-white rounded border border-green-200">
-                  <p className="text-xs text-gray-600 font-semibold mb-2">🔧 Testing Mode - Use this token:</p>
-                  <p className="text-xs bg-gray-50 p-2 rounded border break-all font-mono">{resetToken}</p>
-                  <Link
-                    to={`/reset-password/${resetToken}`}
-                    className="inline-flex items-center gap-2 mt-3 text-sm text-blue-600 hover:text-blue-700 font-medium"
-                  >
-                    Click here to reset password →
-                  </Link>
-                </div>
-              )}
-            </motion.div>
-          )}
-
           {/* Form */}
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
@@ -182,7 +160,6 @@ const ForgotPassword = () => {
                   onChange={(e) => {
                     setEmail(e.target.value);
                     setError('');
-                    setMessage('');
                   }}
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
                   placeholder="you@example.com"

@@ -11,6 +11,8 @@ import Register from './pages/Register';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import VerifyEmail from './pages/VerifyEmail';
+import VerifyResetOTP from './pages/VerifyResetOTP';
 
 // User Account imports
 import UserProfile from './pages/user/UserProfile';
@@ -66,7 +68,9 @@ function App() {
               {/* User Auth routes */}
               <Route path="/register" element={<Register />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/verify-reset-otp" element={<VerifyResetOTP />} />
               <Route path="/reset-password/:token" element={<ResetPassword />} />
 
               {/* Account area routes without sidebar layout */}

@@ -90,10 +90,22 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    emailVerificationOTP: {
+      type: String,
+    },
+    emailVerificationOTPExpiry: {
+      type: Date,
+    },
     resetPasswordToken: {
       type: String,
     },
     resetPasswordExpiry: {
+      type: Date,
+    },
+    resetPasswordOTP: {
+      type: String,
+    },
+    resetPasswordOTPExpiry: {
       type: Date,
     },
   },

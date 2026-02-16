@@ -73,11 +73,19 @@ export const AuthProvider = ({ children }) => {
         setUser(data);
         return { success: true, data };
       }
-      return { success: false, message: response.data.message };
+      return { 
+        success: false, 
+        message: response.data.message,
+        needsVerification: response.data.needsVerification,
+        email: response.data.email,
+      };
     } catch (error) {
+      const errorData = error.response?.data || {};
       return {
         success: false,
-        message: error.response?.data?.message || 'Login failed',
+        message: errorData.message || 'Login failed',
+        needsVerification: errorData.needsVerification,
+        email: errorData.email,
       };
     }
   };
